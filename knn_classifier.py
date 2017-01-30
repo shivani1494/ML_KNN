@@ -29,6 +29,17 @@ class KNN:
 		#print validate_data
 						
 
+	def one_knn(sf):
+
+	def five_knn(sf):
+
+	def nine_knn(sf):
+
+	def fifteen_knn(sf):
+
+	
+		
+
 
 if __name__ == '__main__':
 	
