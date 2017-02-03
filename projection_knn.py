@@ -84,8 +84,6 @@ def t():
 
 #t()
 
-
-
 def projection():
 
     	X,Y = read_data("hw2train.txt")
@@ -101,12 +99,27 @@ def projection():
 	P_valid = np.array(P_valid)
 	P_test = np.array(P_test)
 
+	res1 = knn(1, P_train, Y, P_train, 10)
+	res5 = knn(5, P_train, Y, P_train, 10)
 	res3 = knn(3, P_train, Y, P_train, 10)
-    	err_train = float((Y.shape[0] -( np.count_nonzero(np.array(res3) ==  Y))))/Y.shape[0]
-	print err_train
-		
-	'''
+	res9 = knn(9, P_train, Y, P_train, 10)
+	res15 = knn(15, P_train, Y, P_train, 10)
+    	
+	err_train = [0, 0, 0, 0, 0]
+
+	err_train[0] = float((Y.shape[0] -( np.count_nonzero(np.array(res3) ==  Y))))/Y.shape[0]
+	print "label 3: ", err_train[0]
+	err_train[1] = float((Y.shape[0] -( np.count_nonzero(np.array(res5) ==  Y))))/Y.shape[0]
+	print "label 3: ", err_train[1]
+	err_train[2] = float((Y.shape[0] -( np.count_nonzero(np.array(res9) ==  Y))))/Y.shape[0]
+	print "label 3: ", err_train[2]
+	err_train[3] = float((Y.shape[0] -( np.count_nonzero(np.array(res15) ==  Y))))/Y.shape[0]
+	print "label 3: ", err_train[3]
+	err_train[4] = float((Y.shape[0] -( np.count_nonzero(np.array(res1) ==  Y))))/Y.shape[0]
+	print "label 1: ", err_train[4]
 	
+	print "err_train: ", err_train
+		
 	#validation
 	res1 = knn(1, P_train, Y, P_valid, 10)
 	res5 = knn(5, P_train, Y, P_valid, 10)
@@ -132,14 +145,13 @@ def projection():
 	else:
 		best_label = 12
 
-	print "validation error", err[minIdx]
+	print "validation error: ", err[minIdx]
 
 	res9 = knn(best_label, P_train, Y, P_test, 10)
 
     	err_test = float((YTest.shape[0] -( np.count_nonzero(np.array(res9) ==  YTest))))/YTest.shape[0]
 
-	print "test error", err_test
+	print "test error: ", err_test
 	
-	'''
 
 projection()
