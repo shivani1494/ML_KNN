@@ -1,19 +1,25 @@
 import numpy as np
 from random import choice
 
-def read_data(filename):
+def read_data(filename, projection = False):
     try:
         filehandle = open(filename,"r")
         file = filehandle.read()
         file = file.split()
         data = []
-        for vector in range(len(file)//785 - 1):
-            data += [file[vector*785:vector*785+785+1]]
+        if projection:
+            for row in range(len(file)//20):
+                data += [file[row*20:row*20+20]]
+            P = np.array(data)
+            return P.astype(float)
+        else:
+            for vector in range(len(file)//785):
+                data += [file[vector*785:vector*785+785]]
 
-        darray = np.array(data)
-        X = darray[:,0:784]
-        Y = darray[:,784]
-        return X.astype(int), Y.astype(int)
+            darray = np.array(data)
+            X = darray[:,0:784]
+            Y = darray[:,784]
+            return X.astype(int), Y.astype(int)
         
     except IOError:
         print("IOError -- File does not exist")
