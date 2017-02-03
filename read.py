@@ -13,8 +13,8 @@ def read_data(filename, projection = False):
             P = np.array(data)
             return P.astype(float)
         else:
-            for vector in range(len(file)//785 -1):
-                data += [file[vector*785:vector*785+785+1]]
+            for vector in range(len(file)//785):
+                data += [file[vector*785:vector*785+785]]
 
             darray = np.array(data)
             X = darray[:,0:784]
