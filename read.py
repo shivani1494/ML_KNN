@@ -1,4 +1,5 @@
 import numpy as np
+from random import choice
 
 def read_data(filename):
     try:
@@ -42,8 +43,16 @@ def knn(k, X, Y,XTest, num_classes):
         class_count = [0]*num_classes
         for c in closest_classes:
             class_count[c] += 1
-        #predictions += [closest_classes, closest_dist]
-        predictions += [class_count.index(max(class_count))]
+        # If tie, break randomly
+        if class_count.count(max(class_count)) > 1:
+            max_index = []
+            for i in range(len(class_count)):
+                if class_count[i] == max(class_count):
+                    max_index += [i]
+            c = choice(max_index)
+        else :
+            c = class_count.index(max(class_count))
+        predictions += [c]
     return predictions
                     
         
@@ -61,11 +70,9 @@ def test():
 def t():
     X,Y = read_data("hw2train.txt")
     XTest, YTest = read_data("hw2validate.txt")
-    #X = X[0:1000,:] ; Y = Y[0:1000]
-    #XTest = XTest[0:100,:]; YTest = YTest[0:100]
-    results = knn(3, X,Y, XTest, 10)
-    print(float((YTest.shape[0] -( np.count_nonzero(np.array(results) ==  YTest))))/YTest.shape[0])
+    results = knn(3, X,Y, X, 10)
+    print(float((Y.shape[0] -( np.count_nonzero(np.array(results) ==  Y))))/Y.shape[0])
 
-    print(results, YTest)
+    print(results, Y)
 
-test()
+t()
