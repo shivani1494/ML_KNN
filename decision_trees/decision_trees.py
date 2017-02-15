@@ -5,8 +5,7 @@ class decision_tree:
         sf._input_data = load(filenames[0])
         sf._label_index = 0
         sf._num_features = 0
-        sf.__rootnode = None
-        sf._num_examples = 0
+        sf._rootnode = None
 
     def load(sf,filename):
         filehandle = open(filename, "r")
@@ -22,13 +21,30 @@ class decision_tree:
 
         sf._label_index = data.shape[1]-1
         sf._num_features = sf._label_index
-        sf._num_examples = data.shape[0]
 
         return data
 
     def train(sf):
-        sf._rootnode = sf_input_data
-        feature, threshold = sf.maximize_IG(X)
+        sf._rootnode = Node(None, sf._input_data, None)
+
+        current_node = sf._rootnode
+        while True:
+            if current_node.pure:
+                feature, threshold = sf.maximize_IG(current_node.data)
+                split(current_node, feature, threshold)
+
+                if current_node.leftchild.pure:
+                    current_node = current_node.leftchild
+                elif current_node.rightchild.pure:
+                    current_node = current_node.rightchild
+                else:
+                    break
+
+
+    def split(sf, node, feature, threshold):
+        ind_greater, ind_smaller = sf.examples_threshold(node.data,feature,threshold)
+        node_smaller = Node(node, node.data[ind_smaller],"left")
+        node_greater = Node(node, node.data[ind_greater],"right")
 
 
     def maximize_IG(sf,X):
@@ -51,10 +67,12 @@ class decision_tree:
 
     def entropy(sf, X):
         nonzero = np.count_nonzero(X[:,sf._label_index])
+        num_examples = data.shape[0]
 
         return -nonzero/sf._num_examples*np.log(nonzero/sf._num_examples) -(sf._num_examples-nonzero)/sf._num_examples*np.log((sf._num_examples-nonzero)/sf._num_examples)
 
     def conditional_entropy(sf, X, feature, threshold):
+        num_examples = data.shape[0]
         ind_greater, ind_smaller = sf.examples_greater_than_threshold(X, feature, threshold)
 
         greater = entropy(X[ind_greater,:]) # H(X,Z = 0)
@@ -66,16 +84,26 @@ class decision_tree:
         return prob_greater * greater + prob_smaller * smaller
 
     def examples_threshold(sf, X, feature, threshold):
-        greater =  X[:,feature] >= threshold # samples Z = 0
+        greater =  X[:,feature] > threshold # samples Z = 0
         smaller = X[:,feature] <= threshold # samples Z = 1
         return np.where(greater), np.where(smaller)
 
     def get_threshold(sf,X,feature):
         return np.mean(X[:,feature],axis=0)
 
-class Node:
-    def __init__(sf,data):
-        sf.data = data
-        sf.pure = sf.check_purity()
+    class Node:
+        def __init__(sf, parent, data, pos):
+            sf.rightchild = None
+            sf.leftchild = None
+            sf.data = data
+            sf.pure = sf.check_purity()
+            if parent:
+                sf.parent = parent
+                if pos == "left":
+                    sf.parent.leftchild = sf
+                elif pos == "right":
+                    sf.parent.rightchild = sf
 
-    def 
+        def check_purity():
+            same_label_count = np.count_nonzero(sf.data[:,sf._label_index])
+            return same_label_count == 0 or same_label_count == sf.data.shape[0]
