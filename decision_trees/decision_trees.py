@@ -1,13 +1,18 @@
 import numpy as np
 
-class decision_tree:
+class DecisionTree:
     def __init__(sf, filenames):
-        sf._input_data = load(filenames[0])
         sf._label_index = 0
         sf._num_features = 0
+        sf._input_data = load(filenames[0])
+
+        sf._feature_name = sf.feature_names("hw3features.txt")
         sf._rootnode = None
+        sf.train()
 
     def load(sf,filename):
+        print("Loading %s ..." %filename)
+
         filehandle = open(filename, "r")
         line = filehandle.readline()
         data = []
@@ -22,13 +27,15 @@ class decision_tree:
         sf._label_index = data.shape[1]-1
         sf._num_features = sf._label_index
 
+        print(filename,"loaded : Dim",data.shape)
         return data
 
     def train(sf):
+        print("Start training")
         sf._rootnode = Node(None, sf._input_data, None)
-
         current_node = sf._rootnode
         while True:
+            print(current_node)
             if not(current_node.pure):
                 feature, threshold = sf.maximize_IG(current_node.data)
                 split(current_node, feature, threshold)
@@ -42,6 +49,7 @@ class decision_tree:
                     pass
 
     def split(sf, node, feature, threshold):
+        # Creates two branches if the feature was not already used
         ind_greater, ind_smaller = sf.examples_threshold(node.data,feature,threshold)
         if not(sf.feature_in_branch(node,feature)):
             node_smaller = Node(node, node.data[ind_smaller], feature, threshold, "left")
@@ -104,6 +112,9 @@ class decision_tree:
         else :
             return True
 
+    def feature_names(sf, filename):
+        filehandle = open(filenam, "r")
+
     class Node:
         def __init__(sf, parent, data, feature, threshold, pos):
             sf.rightchild = None
@@ -120,6 +131,10 @@ class decision_tree:
                 elif pos == "right":
                     sf.parent.rightchild = sf
 
+        def __str__(sf):
+            p = sf.parent.feature if p.parent else None
+            return "f<%i> p<%i>" %(f,p)
+
         def check_purity():
             same_label_count = np.count_nonzero(sf.data[:,sf._label_index])
             if same_label_count == 0:
@@ -129,3 +144,6 @@ class decision_tree:
             else :
                 return False
             return True
+
+if __name__ == "__main__":
+    tree = DecisionTree()
