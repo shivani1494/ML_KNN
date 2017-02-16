@@ -5,7 +5,7 @@ class DecisionTree:
         sf._num_features = 0
         if input_data != None:
             sf._input_data = input_data
-            sf._num_features = input_data.shape[1]
+            sf._num_features = input_data.shape[1]-1
         else:
             sf._input_data = sf.load(filenames[0])
             sf._feature_names = sf.get_feature_names("hw3features.txt")
@@ -32,43 +32,54 @@ class DecisionTree:
         print("Start training")
         sf._rootnode = Node(sf._input_data, None, None)
         current_node = sf._rootnode
+        iteration = 0
         while True:
+            print("iter:",iteration); iteration += 1;
             if not(current_node.pure):
+                print("Node Not Pure")
+                # Set current node to pure
+                # (we are not going to compute the tree for this node again)
+                current_node.pure = True
                 feature, threshold = sf.maximize_IG(current_node)
-                if feature == None and threshold == None:
-                    # All the features used in that branch
-                    current_node.pure = True
 
-                    # Actual label the all the data in current_node 
+                if feature == None and threshold == None:
+                    print("Features Used in the branch,",end=" ")
+                    # All the features used in that branch
+                    # "Actual" label of all the data in current_node is the majority label
+                    # (Node Purity is checked when created)
 
                     label_index = current_node.data.shape[1]-1
                     nonzero = np.count_nonzero(current_node.data[:,label_index])
                     if (nonzero > current_node.data[:,label_index].shape[0]-nonzero):
+                        # Actual label for right branch
                         current_node.label_if_less = 1
+                        print("Label Right",current_node.label_if_less)
                     else:
+                        # Actual label for left branch
                         current_node.label_if_less = 0
-                    continue
+                        print("Label Left",current_node.label_if_less)
 
-                current_node.threshold = threshold
-                current_node.feature = feature
+                else:
+                    print("Features Not used")
+                    # Features not being used
+                    current_node.threshold = threshold
+                    current_node.feature = feature
 
-                sf.split(current_node, feature, threshold)
-                # Set current node to pure
-                # (we are not going to compute the tree for this node again)
-                current_node.pure = True
+                    sf.split(current_node, feature, threshold)
+                    print(current_node)
 
-                if current_node.leftchild:
-                    # Feature not already in branch, it has children
-                    # Build Left branch
+                    print("Building Left Branch")
+                    # Build Left Branch
                     current_node = current_node.leftchild
-                print(current_node)
                 
 
             elif current_node.parent:
-                if current_node.parent.rightchild != current_node:
+
+                if current_node.parent.rightchild and current_node.parent.rightchild != current_node:
+
                     # Build sibling (rightchild) branch
-                    current_node = current_node.rightchild
-                elif current_node.parent.parent != None:
+                    current_node = current_node.parent.rightchild
+                elif current_node.parent != None:
                     # Go to grandfather
                     current_node = current_node.parent
 
@@ -92,12 +103,14 @@ class DecisionTree:
         for f in range(sf._num_features):
             # Checks if the feature is already in use in the branch
             if not(sf.feature_in_branch(node,f)):
+                print("# F",f)
                 t = sf.get_threshold(X,f)
                 ig = sf.information_gain(X,f,t)
                 if max_ig == None or ig > best_ig:
                     best_ig = ig
                     feature = f
                     threshold = t
+        print("F Chosen,",feature)
         return feature, threshold
 
     def information_gain(sf, X, feature, threshold):
@@ -107,10 +120,15 @@ class DecisionTree:
 
     def entropy(sf, X):
         # Log(0) = -Inf
-        #print(X)
+        print("Here",X.shape[0])
+        print(X)
         label_index = X.shape[1]-1
         nonzero = np.count_nonzero(X[:, label_index])
         num_examples = X.shape[0]
+
+        # Division by 0 otherwise
+        if nonzero == num_examples or nonzero == 0:
+            return 0
 
         return -nonzero/num_examples*np.log(nonzero/num_examples) -(num_examples-nonzero)/num_examples*np.log((num_examples-nonzero)/num_examples)
 
@@ -153,6 +171,19 @@ class DecisionTree:
             index += 1
         sf._num_features = index
 
+    def print_final_structure(sf, node = None, first = True):
+        if first and sf._rootnode:
+            print("***START***")
+            node = sf._rootnode
+        if node:
+            if node.leftchild:
+                node.label_if_less = node.leftchild.label_if_less
+            if node.parent:
+                node.threshold = node.parent.threshold
+            print(node)
+            sf.print_final_structure(node.leftchild, False)
+            sf.print_final_structure(node.rightchild, False)   
+
 class Node:
         def __init__(sf, data, parent, pos):
             sf.rightchild = None
@@ -177,10 +208,11 @@ class Node:
         def check_purity(sf):
             # All data has the same label, so the label is going to be the same as the data
             same_label_count = np.count_nonzero(sf.data[:,sf.data.shape[1]-1])
+
             if same_label_count == 0:
-                sf.label_if_less = 1
-            elif same_label_count == sf.data.shape[0]:
                 sf.label_if_less = 0
+            elif same_label_count == sf.data.shape[0]:
+                sf.label_if_less = 1
             else :
                 return False
             return True
@@ -190,10 +222,10 @@ if __name__ == "__main__":
     # index 0 ==> feature
     # index 1 ==> label
     # threshold = 1
-    testX = np.array([[-1,1],[0,0],[2,1],[0,0],[3,1],[6,0]])
+    #testX = np.array([[-1,1],[-2,0],[2,1],[-4,0],[3,1],[6,0]])
 
     # 2 features
-    #testX = np.array([[1,1,1], [-1,-1,1], [-1,1,0], [1,-1,0]])
+    testX = np.array([[1,1,1], [-1,-1,1], [-1,1,0], [1,-1,0]])
     
     tree = DecisionTree(None,testX)
 
@@ -209,6 +241,7 @@ if __name__ == "__main__":
 
     #tree = DecisionTree(["hw3train.txt"])
     tree.train()
+    tree.print_final_structure()
 
     #print(tree.entropy(testX))
     #print(tree.conditional_entropy(testX,0,1))
