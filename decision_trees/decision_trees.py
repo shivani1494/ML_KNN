@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 class DecisionTree:
     def __init__(sf, filenames, input_data=None):
@@ -37,30 +38,30 @@ class DecisionTree:
         current_node = sf._rootnode
         iteration = 0
         while True:
-            print("iter:",iteration); iteration += 1;
+            #print("iter:",iteration); iteration += 1;
             if not(current_node.pure):
-                print("Node Not Pure")
+                #print("Node Not Pure")
                 # Set current node to pure
                 # (we are not going to compute the tree for this node again)
                 current_node.pure = True
                 feature, threshold = sf.maximize_IG(current_node)
 
                 if feature == None and threshold == None:
-                    print("Features Used in the branch,",end=" ")
+                    # Only called when features_in_branch is being used 
                     # All the features used in that branch
                     # "Actual" label of all the data in current_node is the majority label
-                    # (Node Purity is checked when created)
+                    # (Node Purity is checked when node is created)
 
                     label_index = current_node.data.shape[1]-1
                     nonzero = np.count_nonzero(current_node.data[:,label_index])
                     if (nonzero > current_node.data[:,label_index].shape[0]-nonzero):
                         # Actual label for this branch
                         current_node.label = 1
-                        print("Label Right",current_node.label)
+                        #print("Label Right",current_node.label)
                     else:
                         # Actual label for this branch
                         current_node.label = 0
-                        print("Label Left",current_node.label)
+                        #print("Label Left",current_node.label)
                     
                     # Set parent Label
                     if current_node.parent.leftchild == current_node:
@@ -69,34 +70,35 @@ class DecisionTree:
                         current_node.parent.label_if_great = current_node.label
 
                 else:
-                    print("Features Not used")
+                    #print("Features Not used")
                     # Features not being used
                     current_node.threshold = threshold
                     current_node.feature = feature
 
                     sf.split(current_node, feature, threshold)
-                    print(current_node)
+                    #print(current_node)
 
-                    print("Building Left Branch")
+                    #print("Building Left Branch")
                     # Build Left Branch
                     current_node = current_node.leftchild
                 
 
             elif current_node.parent:
-                print("Label for pure",current_node.label)
+                #print("Label for pure",current_node.label)
 
                 if current_node.parent.rightchild and current_node.parent.rightchild != current_node:
 
-                    print("Building Right Branch")
+                    #print("Building Right Branch")
                     # Build sibling (rightchild) branch
                     current_node = current_node.parent.rightchild
                 elif current_node.parent != None:
                     # Go to grandfather
-                    print("Go to parent")
+                    #print("Go to parent")
                     current_node = current_node.parent
 
             else:
                 break
+            
 
     def split(sf, node, feature, threshold):
         # Creates two branches
@@ -116,12 +118,18 @@ class DecisionTree:
         
         for f in range(sf._num_features):
             # Checks if the feature is already in use in the branch
-            if not(sf.feature_in_branch(node,f)):
+            #if not(sf.feature_in_branch(node,f)):
                 #print("# F",f)
-                #t = sf.get_threshold(X,f)
+            X_f = np.array(X[:,f], copy=True) # Deep copy
+            X_f.sort()
+            for split in range(X_f.shape[0]-1):
+                t = (X_f[split] + X_f[split+1]) / 2
+
+            #t = sf.get_threshold(X,f)
                 ig = sf.information_gain(X,f,t)
-                if max_ig == None or ig > best_ig:
-                    best_ig = ig
+                #print(ig)
+                if max_ig == None or ig >= max_ig:
+                    max_ig = ig
                     feature = f
                     threshold = t
         #print("F Chosen,",feature)
@@ -185,14 +193,14 @@ class DecisionTree:
             index += 1
         sf._num_features = index
 
-    def print_final_structure(sf, node = None, root = True):
+    def print_final_structure(sf, node = None, root = True, level = 0):
         if root and sf._rootnode:
             print("***START***")
             node = sf._rootnode
-        if node:
+        if node and level < 3: ###################################### Lvl down
             print(node)
-            sf.print_final_structure(node.leftchild, False)
-            sf.print_final_structure(node.rightchild, False)
+            sf.print_final_structure(node.leftchild, False, level+1)
+            sf.print_final_structure(node.rightchild, False, level+1)
 
     def predict(sf,X, node, root=True):
         # Does not preserve the order of the data
@@ -228,8 +236,50 @@ class DecisionTree:
         # Need to add an all 0 row in order to append the predictions later
         sf.predictions = np.zeros((1,sf._num_features+2))
 
+    def deep_copy(sf):
+        tree = copy.copy(sf)
+        # Copy Root and link roots
+        tree._rootnode = copy.copy(sf._rootnode)
+        tree._rootnode.copy = sf._rootnode
+        sf._rootnode.copy = tree._rootnode
+
+        # Copy children
+        if sf._rootnode.rightchild:
+            rightchild = copy.copy(sf._rootnode.rightchild)
+            rightchild.parent = tree._rootnode
+            tree._rootnode.rightchild = rightchild
+
+            sf.copy_nodes(sf._rootnode.rightchild, tree._rootnode.rightchild)
+            
+        if sf._rootnode.leftchild:
+            leftchild = copy.copy(sf._rootnode.leftchild)
+            leftchild.parent = tree._rootnode
+            tree._rootnode.leftchild = leftchild
+            
+            sf.copy_nodes(sf._rootnode.leftchild, tree._rootnode.leftchild)
+
+        return tree
+
+    def copy_nodes(sf,node, ncop):
+        node.copy = ncop
+        ncop.copy = node
+        if node.rightchild:
+            rightchild = copy.copy(node.rightchild)
+            rightchild.parent = ncop
+            ncop.rightchild = rightchild
+            sf.copy_nodes(node.rightchild, ncop.rightchild)
+        if node.leftchild:
+            leftchild = copy.copy(node.leftchild)
+            leftchild.parent = ncop
+            ncop.leftchild = leftchild
+            sf.copy_nodes(node.leftchild, ncop.rightchild)
+
+
+
 class Node:
         def __init__(sf, data, parent, pos):
+            sf.copy = None # Used to keep track of the changes made when pruning
+            sf.marked = False # Used to keep track of the path
             sf.rightchild = None
             sf.leftchild = None
             sf.data = data
@@ -248,9 +298,9 @@ class Node:
             sf.pure = sf.check_purity()
 
         def __str__(sf):
-            if sf.label != None:
+            #if sf.label != None:
                 # leaf node
-                return ""
+            #    return ""
 
             p = None
             if (sf.parent):
@@ -260,7 +310,7 @@ class Node:
                 else:
                     p += "r"
 
-            return "f<%s> ? t<%s> : ll<%s> lg<%s> || p<%s>" %(sf.feature, sf.threshold, sf.label_if_less, sf.label_if_great, p)
+            return "f<%s> ? t<%s> : ll<%s> lg<%s> || p<%s> || #%i" %(sf.feature, sf.threshold, sf.label_if_less, sf.label_if_great, p, sf.data.shape[0])
 
         def check_purity(sf):
             # All data has the same label, so the label is going to be the same as the data
@@ -280,6 +330,81 @@ class Node:
                     sf.parent.label_if_great = sf.label
             return True
 
+def prune(tree, treeTest, val_data, node):
+        # Breadth First (Yes No Branches)
+        # tree is the original, treeTest a copy
+        # node from treeTest currently being checked
+        # root_node initially
+
+        feature = node.feature
+        threshold = node.threshold
+        X = node.data
+
+        # Assign labels according to the majority
+        nonzero = np.count_nonzero(X[:,-1])
+        if X.shape[0]-nonzero < nonzero:
+            label = 1
+        else:
+            label = 0
+
+        if not(node.parent): # Root Node
+            node.leftchild.label = label
+            node.rightchild.label = label
+            node.label_if_less = label
+            node.label_if_great = label
+
+        else: # Any other node , do not take node if leaf node (if it is already labeled)
+              # Node checked in find_node
+
+            node.label = label
+            if node.parent.leftchild == node:
+                node.parent.label_if_less = label
+            elif node.parent.rightchild == node:
+                node.parent.label_if_great = label
+        node.rightchild = None
+        node.leftchild = None
+
+        tree.reset_predictions()
+        treeTest.reset_predictions()
+        tree.predict(val_data,None)
+        treeTest.predict(val_data,None)
+
+        correct = np.count_nonzero(tree.predictions[:,-1] == tree.predictions[:,-2])
+
+        error_tree = val_data.shape[0] - correct
+        correct_test = np.count_nonzero(treeTest.predictions[:,-1] == treeTest.predictions[:,-2])
+        error_treeTest = val_data.shape[0] - correct_test
+
+
+        if error_treeTest <= error_tree:
+            print("Val Error Tree", error_tree)
+            print("Val Error treeTest", error_treeTest)
+            return treeTest, node
+        else:
+            node.copy.marked = True # Original Node marked
+            treeTest = tree.deep_copy()
+            next_node = find_node(tree._rootnode)
+            if not(next_node):
+                return treeTest, next_node
+            else:
+                return prune(tree, treeTest, val_data, next_node)
+def find_node(node):
+    # Breadth First Search (Yes No)
+    # Search from top, original tree
+    not_searched = [node]
+
+    while not_searched :
+        node = not_searched.pop(0)
+
+        if node.leftchild: # Has children
+            if node.label_if_great == None: # leftchild is not leaf:
+                not_searched.append(node.rightchild)
+            if node.label_if_less == None: # rightchild is not leaf
+                not_searched.append(node.leftchild)
+        if node.marked:
+            node.marked = False
+            return not_searched.pop(0).copy
+            
 if __name__ == "__main__":
     # 2 x 6 matrix
     # index 0 ==> feature
@@ -291,30 +416,47 @@ if __name__ == "__main__":
     #testX = np.array([[1,1,1], [-1,-1,1], [-1,1,0], [1,-1,0]])
     
     #tree = DecisionTree(None,testX)
-
-    # Check if feature_in_branch works
-    # Comment sf.pure in __init__ in Node
-    """n = Node([1], None, None)
-    n.feature = 5
-    n2 = Node([1],n, "left")
-    n3 = Node([1], n, "right")
-    n4 = Node([1], n2, "left")
-
-    print(tree.feature_in_branch(n4,4))"""
-
-    tree = DecisionTree(["hw3train.txt"])
-    tree.train()
-    tree.print_final_structure()
-
     # 2 features
     #X = np.array([[-1,1,1]])
 
 
+    # Training
+    tree = DecisionTree(["hw3train.txt"])
+    tree.train()
+    tree.print_final_structure()
+
+    # Training Error
     tree.reset_predictions()
-    X = tree.load("hw3test.txt")
+    X = tree.load("hw3train.txt")
     tree.predict(X,None)
-    
     print(np.count_nonzero(tree.predictions[:,-1] == tree.predictions[:,-2]))
-    print(tree._rootnode)
-    #print(tree.entropy(testX))
-    #print(tree.conditional_entropy(testX,0,1))
+    
+    # Test Error
+    tree.reset_predictions()
+    Xtest = tree.load("hw3test.txt")
+    tree.predict(Xtest,None)
+    print(np.count_nonzero(tree.predictions[:,-1] == tree.predictions[:,-2]))
+
+    #### Pruning
+    Xtest = tree.load("hw3test.txt")
+    Xval = tree.load("hw3validation.txt")
+    treeTest = tree.deep_copy()
+    print("First prune")
+    treeTest, node = prune(tree, treeTest, Xval, treeTest._rootnode)
+    print(node, node.label)
+    # Error
+    treeTest.reset_predictions()
+    treeTest.predict(Xtest,None)
+    print(np.count_nonzero(treeTest.predictions[:,-1] == treeTest.predictions[:,-2]))    
+
+    # Second Pruning
+    tree = treeTest
+    treeTest = tree.deep_copy()
+    print("Second prune")
+    treeTest, node = prune(tree, treeTest, Xval, treeTest._rootnode)
+    print(node, node.label)
+    # Error    
+    treeTest.reset_predictions()
+    treeTest.predict(Xtest,None)
+    print(np.count_nonzero(treeTest.predictions[:,-1] == treeTest.predictions[:,-2]))    
+
