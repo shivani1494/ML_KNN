@@ -76,9 +76,9 @@ class Perceptron:
 				#print "weights: ", sf.weight_mat
 				
 
-			sf.train_err += [sf.run_perceptron(data, label)] 
+			sf.train_err += [sf.test_perceptron(data, label)] 
 			print("train err after", t+1 ,"pass:", sf.train_err[-1])
-			sf.test_err +=  [sf.run_perceptron(test_data, test_label)]
+			sf.test_err +=  [sf.test_perceptron(test_data, test_label)]
 			print("test err after", t+1, "pass:", sf.test_err[-1])
 
 	'''	
@@ -93,7 +93,7 @@ class Perceptron:
 	'''
 
 
-	def run_perceptron(sf, data, label):
+	def test_perceptron(sf, data, label):
 		#predict output for normal perceptron
 
 		err = 0.0
@@ -127,15 +127,15 @@ class Perceptron:
 				else:
 					count += 1
 
-			sf.run_voted_perceptron(t)
+			sf.test_voted_perceptron(t)
 
-			sf.train_err += [run_voted_perceptron(data, label)]
+			sf.train_err += [test_voted_perceptron(data, label)]
 			print("train err after", t+1, "pass:", sf.train_err[t])
-			sf.test_err += [run_voted_perceptron(test_data, test_label)]
+			sf.test_err += [test_voted_perceptron(test_data, test_label)]
 			print("train err after", t+1, "pass:", sf.test_err[t])
 
 
-	def run_voted_perceptron(sf, data, label):
+	def test_voted_perceptron(sf, data, label):
 
 		sum_sign = 0
 		for t in range(len(test_data)):
@@ -174,15 +174,15 @@ class Perceptron:
 				else:
 					count += 1
 
-			sf.run_averaged_perceptron(t)
+			sf.test_averaged_perceptron(t)
 
-			sf.train_err += run_averaged_perceptron(sf.input_data, sf.input_label)
+			sf.train_err += test_averaged_perceptron(sf.input_data, sf.input_label)
 			print("train err after", t+1, "pass:", sf.train_err[-1])
-			sf.test_errt += run_averaged_perceptron(sf.test_data, sf.test_label)
+			sf.test_errt += test_averaged_perceptron(sf.test_data, sf.test_label)
 			print("train err after", t+1, "pass:", sf.test_err[-1])
 
 
-	def run_averaged_perceptron(sf, data, label):
+	def test_averaged_perceptron(sf, data, label):
 
 		sum_sign = 0
 		for t in range(len(data)):
@@ -205,12 +205,22 @@ class Perceptron:
 	def classify_A_VS_B(sf, a, b=None, allLabels=None):
 
 		if(allLabels == None):
+			#train
 			labels_ind_a =  np.where(sf.input_label == a)[0]
 			labels_ind_b =  np.where(sf.input_label == b)[0]
+
+			#test
+			labels_ind_a_T =  np.where(sf.test_label == a)[0]
+			labels_ind_b_T =  np.where(sf.test_label == b)[0]
 		
 		if(b == None):
+			#train
 			labels_ind_a =  np.where(sf.input_label == a)[0]
 			labels_ind_b =  np.where(sf.input_label != a)[0]
+
+			#test
+			labels_ind_a_T =  np.where(sf.test_label == a)[0]
+			labels_ind_b_T =  np.where(sf.test_label != b)[0]
 		
 		#print "labels_inx_1: ", labels_ind_1
 		#print "labels_idx_2: ", labels_ind_2
@@ -231,35 +241,40 @@ class Perceptron:
 
 		#print "label[3]: ", label[3]
 
-		data_label = np.hstack((data, label))
+		train_data_label = np.hstack((data, label))
 
 		np.random.shuffle(data_label)
 
-		print "data_label ", data_label
-
-		data = data_label[:, :-1]
-		print "data ", data		
-		label = data_label[:, -1]
-		print "label ", label
-
-		labels_ind_a =  np.where(sf.test_label == 1)[0]
-		labels_ind_b =  np.where(sf.test_label == 2)[0]
+		#print "data_label ", data_label
+		data = train_data_label[:, :-1]
+		#print "data ", data		
+		label = train_data_label[:, -1]
+		#print "label ", label
 		
-		data_test = np.vstack((sf.test_data[labels_ind_a,:],sf.test_data[labels_ind_b,:]))
+		data_test = np.vstack((sf.test_data[labels_ind_a_T,:],sf.test_data[labels_ind_b_T,:]))
 
-		label_a = sf.test_label[labels_ind_a].reshape(len(labels_ind_a),1)
+		label_a = sf.test_label[labels_ind_a_T].reshape(len(labels_ind_a_T),1)
 		label_a[:,0] = 1
-		label_b = sf.test_label[labels_ind_b].reshape(len(labels_ind_b),1)
+		
+		label_b = sf.test_label[labels_ind_b_T].reshape(len(labels_ind_b_T),1)		
 		label_b[:,0] = -1
+
 		label_test = np.vstack((label_a,label_b))
 
+		return (data, label, data_test, label_test)
+
+	def run_perceptron(sf):
+		
+		data, label, data_test, label_test = classify_A_VS_B(1, 2)
 		sf.perceptron(data, label, data_test, label_test)
+
+
 
 if __name__ == '__main__':
 
 	ptrn = Perceptron()
-	ptrn.classify_1vs2()
-	#ptrn.perceptron()
+	
+	ptrn.run_perceptron()
 
 	#X_T, Y_T = ptrn.read_data(TEST_NAME)
 	#print(X.shape,Y.shape)    
