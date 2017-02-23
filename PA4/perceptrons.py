@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 
 ### DEFAULT FILENAMES
     TRAINING_NAME = "hw4train.txt"
@@ -65,8 +66,8 @@ class Perceptron:
 
             sf.train_err += [sf.run_perceptron(sf.input_data)] 
             print("train err after", t+1 ,"pass:", sf.train_err[-1])
-        sf.test_err +=  [sf.run_perceptron(sf.test_data)]
-        print("test err after", 1, "pass:", sf.test_err[-1])
+            sf.test_err +=  [sf.run_perceptron(sf.test_data)]
+            print("test err after", t+1, "pass:", sf.test_err[-1])
 
 
     def run_perceptron(sf, data):
@@ -95,7 +96,7 @@ class Perceptron:
                     temp_weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
                     
                     #append for the previous matrix
-                    sf.all_weight_mat.append(list(sf.weight_mat))
+                    sf.all_weight_mat.append(copy.copy(sf.weight_mat))
                     sf.weight_count.append(count)
 
                     sf.weight_mat = temp_weight_mat 
@@ -106,13 +107,15 @@ class Perceptron:
 
             sf.run_voted_perceptron(t)
 
-            sf.train_err += [err/data.shape[0]]
+            sf.train_err += [run_voted_perceptron(sf.input_data)]
             print("train err after", t+1, "pass:", sf.train_err[t])
-            err = 0.0
+            sf.test_err += [run_voted_perceptron(sf.test_data)]
+            print("train err after", t+1, "pass:", sf.test_err[t])
 
 
 
-    def run_voted_perceptron(sf, t):
+
+    def run_voted_perceptron(sf, data):
 
         sum_sign = 0
         for t in range(len(test_data)):
@@ -129,9 +132,7 @@ class Perceptron:
             if(class_t != label_test[t]):
                 err += 1
 
-        sf.test_err[t] = sf.calculate_testing_error(err)
-        print("train err after", t+1, "pass:", sf.test_err[t])
-
+       return err/data.shape[0]
 
 
     #think about why would voted and averaged perceptron give you the
