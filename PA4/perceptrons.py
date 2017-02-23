@@ -34,6 +34,8 @@ class Perceptron:
 	def read_data(sf):
 		#read test train and label data
 
+		
+
 	def perceptron(sf):
 
 		err = 0.0
