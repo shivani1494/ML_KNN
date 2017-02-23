@@ -127,23 +127,22 @@ class Perceptron:
 				else:
 					count += 1
 
-			sf.test_voted_perceptron(t)
-
-			sf.train_err += [test_voted_perceptron(data, label)]
+			sf.train_err += [sf.test_voted_perceptron(data, label)]
 			print("train err after", t+1, "pass:", sf.train_err[t])
-			sf.test_err += [test_voted_perceptron(test_data, test_label)]
+			sf.test_err += [sf.test_voted_perceptron(test_data, test_label)]
 			print("train err after", t+1, "pass:", sf.test_err[t])
 
 
 	def test_voted_perceptron(sf, data, label):
 
 		sum_sign = 0
-		for t in range(len(test_data)):
+		err = 0
+		for t in range(len(data)):
 
 			#you can totally vectorize this loop
 			for i in range(len(sf.all_weight_mat)):
 
-				dot_WY = np.dot(sf.all_weight_mat[i]*test_data[t])
+				dot_WY = np.dot(sf.all_weight_mat[i],data[t])
 				sum_sign += sf.weight_count[i]*np.sign(dot_WY)
 
 				#final sign or class of test data t
@@ -156,14 +155,14 @@ class Perceptron:
 
 	#think about why would voted and averaged perceptron give you the
 	#same result?!
-	def averaged_perceptron(sf):
+	def averaged_perceptron(sf, data, label, test_data, test_label):
 		count = 1
 		num_passes = 4
 		for t in range(num_passes):         
-			for i in range(len(sf.input_data)):
-				dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
+			for i in range(len(data)):
+				dot_XW = np.dot(data[i], sf.weight_mat)
 				if(sf.label[i]*dot_XW <= 0):
-					temp_weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
+					temp_weight_mat = sf.weight_mat + (label[i]*data[i])
 		
 					#append for the previous matrix
 					sf.running_avg += sf.weight_mat*count
@@ -176,9 +175,9 @@ class Perceptron:
 
 			sf.test_averaged_perceptron(t)
 
-			sf.train_err += test_averaged_perceptron(sf.input_data, sf.input_label)
+			sf.train_err += sf.test_averaged_perceptron(data, label)
 			print("train err after", t+1, "pass:", sf.train_err[-1])
-			sf.test_errt += test_averaged_perceptron(sf.test_data, sf.test_label)
+			sf.test_errt += sf.test_averaged_perceptron( test_data,  test_label)
 			print("train err after", t+1, "pass:", sf.test_err[-1])
 
 
@@ -202,9 +201,9 @@ class Perceptron:
 		return err/data.shape[0]
 
 
-	def classify_A_VS_B(sf, a, b=None, allLabels=None):
+	def classify_A_VS_B(sf, a, b=None):
 
-		if(allLabels == None):
+		if(b != None):
 			#train
 			labels_ind_a =  np.where(sf.input_label == a)[0]
 			labels_ind_b =  np.where(sf.input_label == b)[0]
@@ -243,7 +242,7 @@ class Perceptron:
 
 		train_data_label = np.hstack((data, label))
 
-		np.random.shuffle(data_label)
+		np.random.shuffle(train_data_label)
 
 		#print "data_label ", data_label
 		data = train_data_label[:, :-1]
@@ -265,13 +264,28 @@ class Perceptron:
 
 	def run_all_perceptron_algorithms(sf):
 		
-		data, label, data_test, label_test = classify_A_VS_B(1, 2)
+		data, label, data_test, label_test = sf.classify_A_VS_B(1, 2)
 		
 		sf.perceptron(data, label, data_test, label_test)
 		
-		sf.averaged_perceptron(data, label, data_test, label_test)
+		#sf.averaged_perceptron(data, label, data_test, label_test)
 		
 		sf.voted_perceptron(data, label, data_test, label_test)
+
+
+	def run_one_vs_all(sf):
+
+		data1, label1, data_test1, label_test1 = sf.classify_A_VS_B(1)
+
+		data2, label2, data_test2, label_test2 = sf.classify_A_VS_B(2)
+		
+		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)
+		
+		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)
+		
+		data5, label5, data_test5, label_test5 = sf.classify_A_VS_B(5)
+		
+		data6, label6, data_test6, label_test6 = sf.classify_A_VS_B(6)
 
 
 
@@ -280,10 +294,5 @@ if __name__ == '__main__':
 	ptrn = Perceptron()
 	
 	ptrn.run_all_perceptron_algorithms()
-
-	#X_T, Y_T = ptrn.read_data(TEST_NAME)
-	#print(X.shape,Y.shape)    
-		
-	#ptrn.voted_perceptron()
-	#ptrn.averaged_perceptron()
+	#ptrn.run_one_vs_all()
 
