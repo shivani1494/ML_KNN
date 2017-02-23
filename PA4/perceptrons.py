@@ -15,7 +15,6 @@ class Perceptron:
 
         sf.test_data = sf.read_data(TEST_NAME)
 
-
         #shape of input_data == 2000, 891
         #initialize to all 0's
         sf.weight_mat = np.zeros(sf.input_data.shape[1])
@@ -132,7 +131,6 @@ class Perceptron:
 
        return err/data.shape[0]
 
-
     #think about why would voted and averaged perceptron give you the
     #same result?!
     def averaged_perceptron(sf):
@@ -149,8 +147,7 @@ class Perceptron:
                     sf.running_avg += sf.weight_mat*count
                     sf.weight_mat = temp_weight_mat
                     count = 1
-                    err += 1        
-
+                    err += 1
                 else:
                     count += 1
 
@@ -176,14 +173,17 @@ class Perceptron:
                 err += 1
 
         sf.test_err[t] = sf.calculate_testing_error(err)
-        print("train err after", t+1, "pass:", sf.test_err[t])  
-
+        print("train err after", t+1, "pass:", sf.test_err[t])
 
 if __name__ == '__main__':
 
     ptrn = Perceptron()
-    X, Y = ptrn.read_data(TRAINING_NAME)
-    print(X.shape,Y.shape)
-    #ptrn.perceptron()
+    ptrn.perceptron()
+
+    #X, Y = ptrn.read_data(TRAINING_NAME)
+    #X_T, Y_T = ptrn.read_data(TEST_NAME)
+    #print(X.shape,Y.shape)    
+        
     #ptrn.voted_perceptron()
     #ptrn.averaged_perceptron()
+
