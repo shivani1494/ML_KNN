@@ -11,9 +11,9 @@ class Perceptron:
     #make sure everything is in numpy
     def __init__(sf):
 
-        sf.input_data = sf.read_data(TRAINING_NAME)
+        sf.input_data, sf.input_label = sf.read_data(TRAINING_NAME)
 
-        sf.test_data = sf.read_data(TEST_NAME)
+        sf.test_data, sf.test_label = sf.read_data(TEST_NAME)
 
 
         #shape of input_data == 2000, 891
@@ -63,11 +63,11 @@ class Perceptron:
             for i in range(sf.input_data.shape[0]):
                 dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
                 if(sf.label[i]*dot_XW <= 0):
-                    sf.weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
+                    sf.weight_mat = sf.weight_mat + (sf.input_label[i]*sf.input_data[i])
 
-            sf.train_err += [sf.run_perceptron(sf.input_data)] 
+            sf.train_err += [sf.run_perceptron(sf.input_data, sf.input_label)] 
             print("train err after", t+1 ,"pass:", sf.train_err[-1])
-            sf.test_err +=  [sf.run_perceptron(sf.test_data)]
+            sf.test_err +=  [sf.run_perceptron(sf.test_data, sf.test_label)]
             print("test err after", t+1, "pass:", sf.test_err[-1])
 
 
@@ -107,13 +107,13 @@ class Perceptron:
 
             sf.run_voted_perceptron(t)
 
-            sf.train_err += [run_voted_perceptron(sf.input_data)]
+            sf.train_err += [run_voted_perceptron(sf.input_data, sf.input_label)]
             print("train err after", t+1, "pass:", sf.train_err[t])
-            sf.test_err += [run_voted_perceptron(sf.test_data)]
+            sf.test_err += [run_voted_perceptron(sf.test_data, sf.test_label)]
             print("train err after", t+1, "pass:", sf.test_err[t])
 
 
-    def run_voted_perceptron(sf, data):
+    def run_voted_perceptron(sf, data, label):
 
         sum_sign = 0
         for t in range(len(test_data)):
@@ -127,7 +127,7 @@ class Perceptron:
                 #final sign or class of test data t
             class_t = np.sign(sum_sign)
 
-            if(class_t != label_test[t]):
+            if(class_t != label[t]):
                 err += 1
 
        return err/data.shape[0]
@@ -136,7 +136,6 @@ class Perceptron:
     #think about why would voted and averaged perceptron give you the
     #same result?!
     def averaged_perceptron(sf):
-        err = 0.0
         count = 1
         num_passes = 4
         for t in range(num_passes):         
@@ -148,17 +147,17 @@ class Perceptron:
                     #append for the previous matrix
                     sf.running_avg += sf.weight_mat*count
                     sf.weight_mat = temp_weight_mat
-                    count = 1
-                    err += 1        
+                    count = 1        
 
                 else:
                     count += 1
 
             sf.run_averaged_perceptron(t)
 
-            sf.train_err += sf.calculate_training_error(err)
-            print("train err after", t+1, "pass:", sf.train_err[t])
-            err = 0.0
+            sf.train_err += run_averaged_perceptron(sf.input_data, sf.input_label)
+            print("train err after", t+1, "pass:", sf.train_err[-1])
+            sf.test_errt += run_averaged_perceptron(sf.test_data, sf.test_label)
+            print("train err after", t+1, "pass:", sf.test_err[-1])
 
 
     def run_averaged_perceptron(sf, data, label):
@@ -173,10 +172,9 @@ class Perceptron:
             class_t = np.sign(dot_WY)
 
             if(class_t != label[t]):
-                err += 1
+                err += 1 
 
-        sf.test_err[t] = sf.calculate_testing_error(err)
-        print("train err after", t+1, "pass:", sf.test_err[t])  
+        return err/data.shape[0]
 
 
 if __name__ == '__main__':
