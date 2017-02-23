@@ -1,0 +1,19 @@
+Training Correct 2001/2000 (2001 because I had to add a predefined value to predictions array so that it wasnt empty)
+Test Correct 831/1000 (subtract 1 for above reasons)
+
+***START***
+f<4> ? t<0.5> : ll<None> lg<None> || p<None> || #2000
+f<0> ? t<415000.0> : ll<None> lg<None> || p<4l> || #1319
+f<16> ? t<2506.5> : ll<None> lg<None> || p<0l> || #1284
+f<20> ? t<208.0> : ll<1> lg<None> || p<0r> || #35
+f<4> ? t<1.5> : ll<None> lg<None> || p<4r> || #681
+f<19> ? t<584.5> : ll<None> lg<None> || p<4l> || #292
+f<20> ? t<2006.0> : ll<None> lg<None> || p<4r> || #389
+
+
+Pruning
+
+1st Pruning: Val error 160/1000, Test error 160/1000
+this node changed : f<4> ? t<1.5> : ll<None> lg<None> || p<4r> || #681 1
+2nd Pruning: Val error 106/1000, Test error 102/1000
+this node changed : f<0> ? t<415000.0> : ll<None> lg<None> || p<4l> || #1319 0
