@@ -51,6 +51,7 @@ class Perceptron:
 		return data[:,:-1], data[:,-1]
 
 	'''
+
 	intuitively and logically think why is it a problem to run all 1 labels
 	first and run all -1 labels next --> how does this affect the updates 
 	of the weight matrix -- why should you make sure to shuffle the data
@@ -61,7 +62,7 @@ class Perceptron:
 
 	def perceptron(sf, data, label, test_data, test_label):
 
-		num_passes = 1	
+		num_passes = 2
 
 		#is the hyperplane getting updated every time
 		#we compute a new weight vector?
@@ -70,6 +71,8 @@ class Perceptron:
 
 		#print "data.shape: ", data.shape
 		#print "label.shape: ", label.shape
+
+		print("Running Regular Perceptron!")
 
 		for t in range(num_passes):         
 			for i in range(data.shape[0]):
@@ -82,8 +85,7 @@ class Perceptron:
 					#print "i label[i]: ", i, ": ", label[i]
 
 				#if (i == 0):
-				#print "weights: ", sf.weight_mat
-				
+				#print "weights: ", sf.weight_mat				
 
 			sf.train_err += [sf.test_perceptron(data, label)] 
 			print("train err after", t+1 ,"pass:", sf.train_err[-1])
@@ -108,6 +110,8 @@ class Perceptron:
 		count = 1
 		num_passes = 3
 
+		print("Running Voted Perceptron!")
+
 		for t in range(num_passes):        
 			for i in range(len(data)):
 				dot_XW = np.dot(data[i], sf.weight_mat)
@@ -127,7 +131,7 @@ class Perceptron:
 			sf.train_err += [sf.test_voted_perceptron(data, label)]
 			print("train err after", t+1, "pass:", sf.train_err[t])
 			sf.test_err += [sf.test_voted_perceptron(test_data, test_label)]
-			print("train err after", t+1, "pass:", sf.test_err[t])
+			print("test err after", t+1, "pass:", sf.test_err[t])
 
 
 	def test_voted_perceptron(sf, data, label):
@@ -153,12 +157,16 @@ class Perceptron:
 	#think about why would voted and averaged perceptron give you the
 	#same result?!
 	def averaged_perceptron(sf, data, label, test_data, test_label):
+		
+		print("Running Averaged Perceptron!")
+
 		count = 1
 		num_passes = 4
+		err = 0
 		for t in range(num_passes):         
 			for i in range(len(data)):
 				dot_XW = np.dot(data[i], sf.weight_mat)
-				if(sf.label[i]*dot_XW <= 0):
+				if(label[i]*dot_XW <= 0):
 					temp_weight_mat = sf.weight_mat + (label[i]*data[i])
 		
 					#append for the previous matrix
@@ -168,32 +176,28 @@ class Perceptron:
 					err += 1
 					count = 1        
 				else:
-					count += 1
+					count += 1			
 
-			sf.test_averaged_perceptron(t)
-
-			sf.train_err += sf.test_averaged_perceptron(data, label)
-			print("train err after", t+1, "pass:", sf.train_err[-1])
-			sf.test_errt += sf.test_averaged_perceptron( test_data,  test_label)
-			print("train err after", t+1, "pass:", sf.test_err[-1])
+			sf.train_err += [sf.test_averaged_perceptron(data, label)]
+			print("train err after", t+1, "pass:", sf.train_err[t])
+			sf.test_err += [sf.test_averaged_perceptron( test_data,  test_label)]
+			print("test err after", t+1, "pass:", sf.test_err[t])
 
 
 	def test_averaged_perceptron(sf, data, label):
 
 		sum_sign = 0
+		err = 0
 		for t in range(len(data)):
 
 			#you can totally vectorize this loop
-			dot_WY = np.dot(sf.running_avg*data[t])
+			dot_WY = np.dot(sf.running_avg,data[t])
 
 			#final sign or class of test data t
 			class_t = np.sign(dot_WY)
 
 			if(class_t != label[t]):
 				err += 1 
-
-		sf.test_err[t] = sf.calculate_testing_error(err)
-		print("train err after", t+1, "pass:", sf.test_err[t])
 
 		return err/data.shape[0]
 
@@ -265,9 +269,11 @@ class Perceptron:
 		
 		sf.perceptron(data, label, data_test, label_test)
 		
-		#sf.averaged_perceptron(data, label, data_test, label_test)
-		
 		sf.voted_perceptron(data, label, data_test, label_test)
+
+		sf.averaged_perceptron(data, label, data_test, label_test)
+		
+		
 
 
 	def run_one_vs_all(sf):
