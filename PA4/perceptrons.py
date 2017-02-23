@@ -50,6 +50,15 @@ class Perceptron:
 		print(filename,"loaded : Dim",data.shape)
 		return data[:,:-1], data[:,-1]
 
+	'''
+	intuitively and logically think why is it a problem to run all 1 labels
+	first and run all -1 labels next --> how does this affect the updates 
+	of the weight matrix -- why should you make sure to shuffle the data
+	randomly before training the perceptron.
+
+	'''
+
+
 	def perceptron(sf, data, label, test_data, test_label):
 
 		num_passes = 1	
@@ -80,18 +89,6 @@ class Perceptron:
 			print("train err after", t+1 ,"pass:", sf.train_err[-1])
 			sf.test_err +=  [sf.test_perceptron(test_data, test_label)]
 			print("test err after", t+1, "pass:", sf.test_err[-1])
-
-	'''	
-	def extract_labelAB(i, j):
-
-		data = []
-		label = []
-		for x in range(len(sf.input_label)):
-			
-			if(input_label[x] == 1 || input_label[x] == 2):
-				data += 
-	'''
-
 
 	def test_perceptron(sf, data, label):
 		#predict output for normal perceptron
