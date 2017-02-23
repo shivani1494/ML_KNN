@@ -2,9 +2,9 @@ import numpy as np
 import copy
 
 ### DEFAULT FILENAMES
-    TRAINING_NAME = "hw4train.txt"
-    TEST_NAME = "hw4test.txt" 
-    DICTIONARY_NAME = "hw4dictionary.txt"
+TRAINING_NAME = "hw4train.txt"
+TEST_NAME = "hw4test.txt" 
+DICTIONARY_NAME = "hw4dictionary.txt"
 
 class Perceptron:
 
@@ -49,7 +49,7 @@ class Perceptron:
         print(filename,"loaded : Dim",data.shape)
         return data[:,:-1], data[:,-1]
 
-    def perceptron(sf):
+    def perceptron(sf, data, label, test_data, test_label):
 
         num_passes = 2
 
@@ -59,14 +59,14 @@ class Perceptron:
         #hyperplane?
 
         for t in range(num_passes):         
-            for i in range(sf.input_data.shape[0]):
-                dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
-                if(sf.label[i]*dot_XW <= 0):
-                    sf.weight_mat = sf.weight_mat + (sf.input_label[i]*sf.input_data[i])
+            for i in range(data.shape[0]):
+                dot_XW = np.dot(data[i], sf.weight_mat)
+                if(label[i]*dot_XW <= 0):
+                    sf.weight_mat = sf.weight_mat + (label[i]*data[i])
 
-            sf.train_err += [sf.run_perceptron(sf.input_data, sf.input_label)] 
+            sf.train_err += [sf.run_perceptron(data, label)] 
             print("train err after", t+1 ,"pass:", sf.train_err[-1])
-            sf.test_err +=  [sf.run_perceptron(sf.test_data, sf.test_label)]
+            sf.test_err +=  [sf.run_perceptron(test_data, test_label)]
             print("test err after", t+1, "pass:", sf.test_err[-1])
 
 
@@ -75,8 +75,8 @@ class Perceptron:
 
         err = 0.0
         for i in range(data.shape[0]):
-            dot_YW = np.dot(sf.data[i], sf.weight_mat)
-            class_sign = sign(dot_YW)
+            dot_YW = np.dot(data[i], sf.weight_mat)
+            class_sign = np.sign(dot_YW)
 
             if(class_sign != label[i]):
                 err += 1
@@ -84,15 +84,15 @@ class Perceptron:
         return err/data.shape[0]
 
 
-    def voted_perceptron(sf):
+    def voted_perceptron(sf, data, label, test_data, test_label):
         count = 1
         num_passes = 3
 
         for t in range(num_passes):        
-            for i in range(len(sf.input_data)):
-                dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
-                if(sf.label[i]*dot_XW <= 0):
-                    temp_weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
+            for i in range(len(data)):
+                dot_XW = np.dot(data[i], sf.weight_mat)
+                if(label[i]*dot_XW <= 0):
+                    temp_weight_mat = sf.weight_mat + (label[i]*data[i])
                     
                     #append for the previous matrix
                     sf.all_weight_mat.append(copy.copy(sf.weight_mat))
@@ -106,9 +106,9 @@ class Perceptron:
 
             sf.run_voted_perceptron(t)
 
-            sf.train_err += [run_voted_perceptron(sf.input_data, sf.input_label)]
+            sf.train_err += [run_voted_perceptron(data, label)]
             print("train err after", t+1, "pass:", sf.train_err[t])
-            sf.test_err += [run_voted_perceptron(sf.test_data, sf.test_label)]
+            sf.test_err += [run_voted_perceptron(test_data, test_label)]
             print("train err after", t+1, "pass:", sf.test_err[t])
 
 
@@ -129,7 +129,7 @@ class Perceptron:
             if(class_t != label[t]):
                 err += 1
 
-       return err/data.shape[0]
+        return err/data.shape[0]
 
     #think about why would voted and averaged perceptron give you the
     #same result?!
@@ -178,14 +178,42 @@ class Perceptron:
 
         return err/data.shape[0]
 
+    def classify_1vs2(sf):
+        labels_ind_1 =  np.where(sf.input_label == 1)[0]
+        labels_ind_2 =  np.where(sf.input_label == 2)[0]
 
+        
+        data = np.vstack((sf.input_data[labels_ind_1,:],sf.input_data[labels_ind_2,:]))
+
+        label_1 = sf.input_label[labels_ind_1].reshape(len(labels_ind_1),1)
+        label_1[:,0] = -1
+        label_2 = sf.input_label[labels_ind_2].reshape(len(labels_ind_2),1)
+        label_2[:,0] = 1
+
+        label = np.vstack((label_1,label_2))
+
+
+        labels_ind_1 =  np.where(sf.test_label == 1)[0]
+        labels_ind_2 =  np.where(sf.test_label == 2)[0]
+        
+        data_test = np.vstack((sf.test_data[labels_ind_1,:],sf.test_data[labels_ind_2,:]))
+
+        label_1 = sf.test_label[labels_ind_1].reshape(len(labels_ind_1),1)
+        label_1[:,0] = -1
+        label_2 = sf.test_label[labels_ind_2].reshape(len(labels_ind_2),1)
+        label_2[:,0] = 1
+        label_test = np.vstack((label_1,label_2))
+
+
+
+        sf.perceptron(data, label, data_test, label_test)
 
 if __name__ == '__main__':
 
     ptrn = Perceptron()
-    ptrn.perceptron()
+    ptrn.classify_1vs2()
+    #ptrn.perceptron()
 
-    #X, Y = ptrn.read_data(TRAINING_NAME)
     #X_T, Y_T = ptrn.read_data(TEST_NAME)
     #print(X.shape,Y.shape)    
         
