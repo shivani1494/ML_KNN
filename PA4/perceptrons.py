@@ -8,7 +8,6 @@ import copy
 
 class Perceptron:
 
-
     #make sure everything is in numpy
     def __init__(sf):
 
@@ -16,16 +15,18 @@ class Perceptron:
 
         sf.test_data = sf.read_data(TEST_NAME)
 
+
+        #shape of input_data == 2000, 891
         #initialize to all 0's
-        sf.weight_mat = []
-        for i in range(sf.input_data.shape[1]):
-            sf.weight_mat.append(0.0)
-        sf.weight_mat = np.array(sf.weight_mat)
+        sf.weight_mat = np.zeros(sf.input_data.shape[1])
 
         #save weigth count and weights for voted and averaged perceptrons
         sf.weight_count = []
         sf.all_weight_mat = []
 
+        #for averaged perceptron algo
+        sf.running_avg = np.zeros(sf.weight_mat.shape)
+        
         sf.train_err = []
 
         sf.test_err = []
@@ -70,16 +71,15 @@ class Perceptron:
             print("test err after", t+1, "pass:", sf.test_err[-1])
 
 
-    def run_perceptron(sf, data):
+    def run_perceptron(sf, data, label):
         #predict output for normal perceptron
 
         err = 0.0
-
         for i in range(data.shape[0]):
-            dot_YW = np.dot(sf.test_data[i], sf.weight_mat)
-            if(dot_YW < 0 and label_output[i] == 1):
-                err += 1
-            elif(dot_YW > 0 and label_output[i] == -1):
+            dot_YW = np.dot(sf.data[i], sf.weight_mat)
+            class_sign = sign(dot_YW)
+
+            if(class_sign != label[i]):
                 err += 1
 
         return err/data.shape[0]
@@ -113,8 +113,6 @@ class Perceptron:
             print("train err after", t+1, "pass:", sf.test_err[t])
 
 
-
-
     def run_voted_perceptron(sf, data):
 
         sum_sign = 0
@@ -138,8 +136,47 @@ class Perceptron:
     #think about why would voted and averaged perceptron give you the
     #same result?!
     def averaged_perceptron(sf):
-        pass
+        err = 0.0
+        count = 1
+        num_passes = 4
+        for t in range(num_passes):         
+            for i in range(len(sf.input_data)):
+                dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
+                if(sf.label[i]*dot_XW <= 0):
+                    temp_weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
+        
+                    #append for the previous matrix
+                    sf.running_avg += sf.weight_mat*count
+                    sf.weight_mat = temp_weight_mat
+                    count = 1
+                    err += 1        
 
+                else:
+                    count += 1
+
+            sf.run_averaged_perceptron(t)
+
+            sf.train_err += sf.calculate_training_error(err)
+            print("train err after", t+1, "pass:", sf.train_err[t])
+            err = 0.0
+
+
+    def run_averaged_perceptron(sf, data, label):
+
+        sum_sign = 0
+        for t in range(len(data)):
+
+            #you can totally vectorize this loop
+            dot_WY = np.dot(sf.running_avg*data[t])
+
+            #final sign or class of test data t
+            class_t = np.sign(dot_WY)
+
+            if(class_t != label[t]):
+                err += 1
+
+        sf.test_err[t] = sf.calculate_testing_error(err)
+        print("train err after", t+1, "pass:", sf.test_err[t])  
 
 
 if __name__ == '__main__':
