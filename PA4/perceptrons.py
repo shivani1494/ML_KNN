@@ -263,10 +263,15 @@ class Perceptron:
 
 		return (data, label, data_test, label_test)
 
-	def run_perceptron(sf):
+	def run_all_perceptron_algorithms(sf):
 		
 		data, label, data_test, label_test = classify_A_VS_B(1, 2)
+		
 		sf.perceptron(data, label, data_test, label_test)
+		
+		sf.averaged_perceptron(data, label, data_test, label_test)
+		
+		sf.voted_perceptron(data, label, data_test, label_test)
 
 
 
@@ -274,7 +279,7 @@ if __name__ == '__main__':
 
 	ptrn = Perceptron()
 	
-	ptrn.run_perceptron()
+	ptrn.run_all_perceptron_algorithms()
 
 	#X_T, Y_T = ptrn.read_data(TEST_NAME)
 	#print(X.shape,Y.shape)    
