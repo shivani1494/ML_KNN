@@ -1,35 +1,33 @@
 import numpy as np
 
+### DEFAULT FILENAMES
+    TRAINING_NAME = "hw4train.txt"
+    TEST_NAME = "hw4test.txt" 
+    DICTIONARY_NAME = "hw4dictionary.txt"
+
 class Perceptron:
 
+
     #make sure everything is in numpy
-    def init(sf):
+    def __init__(sf):
 
-        sf.input_data = []
+        sf.input_data = sf.read_data(TRAINING_NAME)
 
-        sf.input_data = np.array(sf.input_data)
-
-        sf.label_input = [] #?
-
-        sf.label_input = np.array(sf.label_input)
-
-        sf.test_data = []
-
-        sf.test_data = np.array(sf.test_data)
+        sf.test_data = sf.read_data(TEST_NAME)
 
         #initialize to all 0's
         sf.weight_mat = []
-        for i in range(len(input_data[0])):
+        for i in range(sf.input_data.shape[1]):
             sf.weight_mat.append(0.0)
+        sf.weight_mat = np.array(sf.weight_mat)
 
+        #save weigth count and weights for voted and averaged perceptrons
         sf.weight_count = []
         sf.all_weight_mat = []
 
-        sf.weight_mat = np.array(sf.weight_mat)
+        sf.train_err = []
 
-        sf.train_err = [0.0, 0.0, 0.0]
-
-        sf.test_err = [0.0, 0.0, 0.0]
+        sf.test_err = []
 
     def read_data(sf, filename):
         #read test train and label data
@@ -52,45 +50,38 @@ class Perceptron:
 
     def perceptron(sf):
 
-        err = 0.0
+        num_passes = 2
 
         #is the hyperplane getting updated every time
         #we compute a new weight vector?
         #such that the weigth vector is always normla to the 
         #hyperplane?
 
-        for t in xrange(3):         
-            for i in range(len(sf.input_data)):
+        for t in range(num_passes):         
+            for i in range(sf.input_data.shape[0]):
                 dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
                 if(sf.label[i]*dot_XW <= 0):
                     sf.weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
-                    err += err
 
             sf.train_err[t] = sf.calculate_training_error(err)
             print("train err after", t+1 ,"pass:", sf.train_err[t])
-            err = 0.0
-            sf.run_perceptron(t)
 
-    def run_perceptron(sf, t):
+            #sf.run_perceptron(t)
+
+    def run_perceptron(sf, t, data):
+        #predict
 
         err = 0.0
 
-        for i in range(len(sf.test_data)):
+        for i in range(data.shape[0]):
             dot_YW = np.dot(sf.test_data[i], sf.weight_mat)
             if(dot_YW < 0 and label_output[i] == 1):
-                err += err
+                err += 1
             elif(dot_YW > 0 and label_output[i] == -1):
                 err += 1
 
-        sf.test_err[t] = sf.calculate_testing_error(err)
-        print("train err after", t+1, "pass:", sf.test_err[t])
-
-    def calculate_training_error(sf, err):
-        return err/len(sf.input_data)
-
-
-    def calculate_testing_error(sf, err):
-        return err/len(sf.test_data)
+        sf.test_err[t] = err/data.shape[0]
+        print("err after", t+1, "pass:", sf.test_err[t])
 
 
     def voted_perceptron(sf):
@@ -116,7 +107,7 @@ class Perceptron:
 
             sf.run_voted_perceptron(t)
 
-            sf.train_err[t] = sf.calculate_training_error(err)
+            sf.train_err += sf.calculate_training_error(err)
             print("train err after", t+1, "pass:", sf.train_err[t])
             err = 0.0
 
@@ -152,10 +143,6 @@ class Perceptron:
 
 
 if __name__ == '__main__':
-    ### DEFAULT FILENAMES
-    TRAINING_NAME = "hw4train.txt"
-    TEST_NAME = "hw4test.txt" 
-    DICTIONARY_NAME = "hw4dictionary.txt"
 
     ptrn = Perceptron()
     X, Y = ptrn.read_data(TRAINING_NAME)
@@ -163,5 +150,3 @@ if __name__ == '__main__':
     #ptrn.perceptron()
     #ptrn.voted_perceptron()
     #ptrn.averaged_perceptron()
-
-
