@@ -63,13 +63,14 @@ class Perceptron:
                 if(sf.label[i]*dot_XW <= 0):
                     sf.weight_mat = sf.weight_mat + (sf.label[i]*sf.input_data[i])
 
-            sf.train_err[t] = sf.calculate_training_error(err)
-            print("train err after", t+1 ,"pass:", sf.train_err[t])
+            sf.train_err += [sf.run_perceptron(sf.input_data)] 
+            print("train err after", t+1 ,"pass:", sf.train_err[-1])
+        sf.test_err +=  [sf.run_perceptron(sf.test_data)]
+        print("test err after", 1, "pass:", sf.test_err[-1])
 
-            #sf.run_perceptron(t)
 
-    def run_perceptron(sf, t, data):
-        #predict
+    def run_perceptron(sf, data):
+        #predict output for normal perceptron
 
         err = 0.0
 
@@ -80,15 +81,14 @@ class Perceptron:
             elif(dot_YW > 0 and label_output[i] == -1):
                 err += 1
 
-        sf.test_err[t] = err/data.shape[0]
-        print("err after", t+1, "pass:", sf.test_err[t])
+        return err/data.shape[0]
 
 
     def voted_perceptron(sf):
-        err = 0.0
         count = 1
+        num_passes = 3
 
-        for t in xrange(3):         
+        for t in range(num_passes):        
             for i in range(len(sf.input_data)):
                 dot_XW = np.dot(sf.input_data[i], sf.weight_mat)
                 if(sf.label[i]*dot_XW <= 0):
@@ -100,14 +100,13 @@ class Perceptron:
 
                     sf.weight_mat = temp_weight_mat 
                     count = 1
-
-                    err += 1                    
+                    
                 else:
                     count += 1
 
             sf.run_voted_perceptron(t)
 
-            sf.train_err += sf.calculate_training_error(err)
+            sf.train_err += [err/data.shape[0]]
             print("train err after", t+1, "pass:", sf.train_err[t])
             err = 0.0
 
