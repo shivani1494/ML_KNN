@@ -177,6 +177,11 @@ class Perceptron:
 				label = -1 #dont know
 			predictions += [label]
 		return predictions
+					return class_label
+				else
+					return -1
+			else
+				return -1 #dont know
 
 	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
