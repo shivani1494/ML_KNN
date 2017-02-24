@@ -345,9 +345,7 @@ class Perceptron:
 		####REMEMBER TO RESET VARIABLES######
 
 		sf.averaged_perceptron(data, label, data_test, label_test, sf.running_avg)
-		
-		
-
+			
 
 	def run_one_vs_all(sf):
 
@@ -359,7 +357,7 @@ class Perceptron:
 		weight_mat_2 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_2)
 
-		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)\
+		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)
 		weight_mat_3 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_3)
 		
