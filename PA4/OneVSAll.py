@@ -316,5 +316,4 @@ if __name__ == '__main__':
 
 	ptrn = Perceptron()
 	
-	#ptrn.run_all_perceptron_algorithms()
 	ptrn.run_one_vs_all()
