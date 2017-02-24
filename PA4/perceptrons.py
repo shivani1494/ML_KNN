@@ -206,8 +206,8 @@ class Perceptron:
 			sf.test_err += [sf.test_averaged_perceptron( test_data, test_label, running_avg)]
 			print("test err after", t+1, "pass:", sf.test_err[-1])
 
-		#######CHANGE THIS TO 3###############
-		topK = 5
+		####### CHANGE THIS TO 3 #############
+		topK = 3
 		sf.interpret_averaged_perceptron(topK)
 
 	def test_averaged_perceptron(sf, data, label, running_avg):
@@ -352,16 +352,28 @@ class Perceptron:
 	def run_one_vs_all(sf):
 
 		data1, label1, data_test1, label_test1 = sf.classify_A_VS_B(1)
+		weight_mat_1 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_1)
 
 		data2, label2, data_test2, label_test2 = sf.classify_A_VS_B(2)
+		weight_mat_2 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_2)
+
+		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)\
+		weight_mat_3 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_3)
 		
-		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)
-		
-		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)
-		
+		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)		
+		weight_mat_4 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_4)
+
 		data5, label5, data_test5, label_test5 = sf.classify_A_VS_B(5)
+		weight_mat_5 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_5)
 		
 		data6, label6, data_test6, label_test6 = sf.classify_A_VS_B(6)
+		weight_mat_6 = np.zeros(sf.input_data.shape[1])
+		sf.perceptron(data, label, data_test, label_test, weight_mat_6)
 
 
 
