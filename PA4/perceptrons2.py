@@ -330,6 +330,51 @@ class Perceptron:
 
 		return (data, label, data_test, label_test)
 
+	def get_data_AvsB(sf, a, b=None):
+		# a = 1
+		# b = -1
+		all_data = np.hstack((sf.input_data, sf.input_label.reshape((sf.input_label.shape[0],1))))
+		all_test_data = np.hstack((sf.test_data, sf.test_label.reshape((sf.test_label.shape[0],1))))
+
+		if b == None:
+			# b is the rest of labels
+			for i in range(all_data.shape[0]):
+				if all_data[i,-1] == a:
+					all_data[i,-1] = 1
+				else:
+					all_data[i,-1] = -1
+
+			for i in range(all_test_data.shape[1]):
+				if all_test_data[i,-1] == a:
+					all_test_data[i,-1] = 1
+				else:
+					all_test_data[i,-1] = -1
+		else:
+			# b is a label
+			rows_not_used = []
+			for i in range(all_data.shape[0]):
+				if all_data[i,-1] == a:
+					all_data[i,-1] = 1
+				elif all_data[i,-1 == b:
+					all_data[i,-1] = -1
+				else:
+					rows_not_used += [i]
+			all_data = np.delete(all_data,rows_not_used,0)
+
+			rows_not_used = []
+			for i in range(all_test_data.shape[1]):
+				if all_test_data[i,-1] == a:
+					all_test_data[i,-1] = 1
+				elif all_test_data[i,-1] == b:
+					all_test_data[i,-1] = -1
+				else:
+					rows_not_used += [i]
+			all_test_data = np.delete(all_test_data, rows_not_used,0)
+
+		return (all_data[:,:-1], all_data[:,-1], all_test_data[:,:-1], all_test_data[:,-1])
+
+
+
 	def run_all_perceptron_algorithms(sf):
 		
 		####REMEMBER TO RESET VARIABLES######
