@@ -27,16 +27,9 @@ class Perceptron:
 		sf.weight_mat_5 = np.zeros(sf.input_data.shape[1])
 		sf.weight_mat_6 = np.zeros(sf.input_data.shape[1])
 		
-		sf.confusion_matrix = []
 		sf.num_classes = 6
+		sf.conf_mat = np.zeros((sf.num_classes+1,sf.num_classes))
 
-		con_mat_row = []
-		for x in range(sf.num_classes):
-			con_mat_row.append(0)
-
-		for x in range(sf.num_classes+1):
-			sf.confusion_matrix.append(list(con_mat_row))
-		
 		sf.train_err = []
 		sf.test_err = []
 
@@ -122,8 +115,22 @@ class Perceptron:
 		
 		sf.weight_mat_6 = sf.perceptron(data6, label6, data_test6, label_test6, sf.weight_mat_6)
 
-		print("training err",sf.test_one_vs_all(sf.input_data,sf.input_label))
-		print("test err",sf.test_one_vs_all(sf.test_data,sf.test_label))
+		results = sf.test_one_vs_all(sf.input_data,sf.input_label)
+		results_test = sf.test_one_vs_all(sf.test_data,sf.test_label)
+		print("training err",results[1])
+		print("test err",results_test[1])
+
+		sf.confusion_matrix(results_test[0], sf.test_label)
+		print(sf.conf_mat)
+
+	def confusion_matrix(sf, predictions, labels):
+		classes = [1,2,3,4,5,6,-1]
+		for i in range(len(classes)):
+			for j in range(len(classes[:-1])):
+				ind_j = np.where(labels == classes[j])[0]
+				C = np.count_nonzero(predictions[ind_j] == classes[i])
+				N = len(ind_j) * 1.0
+				sf.conf_mat[i,j] = C/N
 
 	def get_data_AvsB(sf, a, b=None):
 		# a = 1
@@ -224,7 +231,8 @@ class Perceptron:
 				label = class_label
 			predictions += [label]
 
-		return (data.shape[0]-np.count_nonzero(np.array(predictions) == labels))/data.shape[0]
+		err = (data.shape[0]-np.count_nonzero(np.array(predictions) == labels))/data.shape[0]
+		return np.array(predictions), err
 
 	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
