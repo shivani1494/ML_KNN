@@ -121,6 +121,9 @@ class Perceptron:
 		
 		sf.perceptron(data6, label6, data_test6, label_test6, sf.weight_mat_6)
 
+		print("training err",sf.test_one_vs_all(sf.input_data,sf.input_label))
+		print("test err",sf.test_one_vs_all(sf.test_data,sf.test_label))
+
 	def get_data_AvsB(sf, a, b=None):
 		# a = 1
 		# b = -1
@@ -165,33 +168,33 @@ class Perceptron:
 		return (all_data[:,:-1], all_data[:,-1], all_test_data[:,:-1], all_test_data[:,-1])
 
 
-	def test_one_vs_all(sf, data):
+	def test_one_vs_all(sf, data, label):
 		
 		predictions = []
-		for x in range(data.shape[0]):
+		for i in range(data.shape[0]):
 			class_sign = [0, 0, 0, 0, 0, 0]	
 			#class 1
-			dot_YW = np.dot(data[i], sf.weight_mat1)
+			dot_YW = np.dot(data[i], sf.weight_mat_1)
 			class_sign[0] = np.sign(dot_YW)
 
 			#class 2
-			dot_YW = np.dot(data[i], sf.weight_mat2)
+			dot_YW = np.dot(data[i], sf.weight_mat_2)
 			class_sign[1] = np.sign(dot_YW)
 
 			#class 3
-			dot_YW = np.dot(data[i], sf.weight_mat3)
+			dot_YW = np.dot(data[i], sf.weight_mat_3)
 			class_sign[2] = np.sign(dot_YW)
 
 			#class 4
-			dot_YW = np.dot(data[i], sf.weight_mat4)
+			dot_YW = np.dot(data[i], sf.weight_mat_4)
 			class_sign[3] = np.sign(dot_YW)
 
 			#class 5
-			dot_YW = np.dot(data[i], sf.weight_mat5)
+			dot_YW = np.dot(data[i], sf.weight_mat_5)
 			class_sign[4] = np.sign(dot_YW)
 
 			#class 6
-			dot_YW = np.dot(data[i], sf.weight_mat6)
+			dot_YW = np.dot(data[i], sf.weight_mat_6)
 			class_sign[5] = np.sign(dot_YW)
 
 
@@ -219,13 +222,90 @@ class Perceptron:
 			else:
 				label = -1 #dont know
 			predictions += [label]
-		return predictions
+		print(predictions)
+		return np.count_nonzero(np.array(predictions) == label)/data.shape[0]
 
-	
+	def test_perceptron(sf, data, label, weight_mat):
+		#predict output for normal perceptron
+
+		err = 0.0
+		for i in range(data.shape[0]):
+			dot_YW = np.dot(data[i], weight_mat)
+			class_sign = np.sign(dot_YW)
+
+			if(class_sign != label[i]):
+				err += 1
+
+		return err/data.shape[0]
+
+
+
+
+	def classify_A_VS_B(sf, a, b=None):
+
+		if(b != None):
+			#train
+			labels_ind_a =  np.where(sf.input_label == a)[0]
+			labels_ind_b =  np.where(sf.input_label == b)[0]
+
+			#test
+			labels_ind_a_T =  np.where(sf.test_label == a)[0]
+			labels_ind_b_T =  np.where(sf.test_label == b)[0]
+		
+		if(b == None):
+			#train
+			labels_ind_a =  np.where(sf.input_label == a)[0]
+			labels_ind_b =  np.where(sf.input_label != a)[0]
+
+			#test
+			labels_ind_a_T =  np.where(sf.test_label == a)[0]
+			labels_ind_b_T =  np.where(sf.test_label != b)[0]
+		
+		#print "labels_inx_1: ", labels_ind_1
+		#print "labels_idx_2: ", labels_ind_2
+		
+		data = np.vstack((sf.input_data[labels_ind_a,:],sf.input_data[labels_ind_b,:]))
+
+		#print "data[3]: ", data[3]
+		label_a = sf.input_label[labels_ind_a].reshape(len(labels_ind_a),1)		
+		label_a[:,0] = 1
+
+		label_b = sf.input_label[labels_ind_b].reshape(len(labels_ind_b),1)
+		label_b[:,0] = -1
+
+		#print "labels_1[690]: ", label_1
+		#print "labels_2[690], ", label_2
+
+		label = np.vstack((label_a,label_b))
+
+		#print "label[3]: ", label[3]
+
+		train_data_label = np.hstack((data, label))
+
+		np.random.shuffle(train_data_label)
+
+		#print "data_label ", data_label
+		data = train_data_label[:, :-1]
+		#print "data ", data		
+		label = train_data_label[:, -1]
+		#print "label ", label
+		
+		data_test = np.vstack((sf.test_data[labels_ind_a_T,:],sf.test_data[labels_ind_b_T,:]))
+
+		label_a = sf.test_label[labels_ind_a_T].reshape(len(labels_ind_a_T),1)
+		label_a[:,0] = 1
+		
+		label_b = sf.test_label[labels_ind_b_T].reshape(len(labels_ind_b_T),1)		
+		label_b[:,0] = -1
+
+		label_test = np.vstack((label_a,label_b))
+
+		return (data, label, data_test, label_test)
+
+
 if __name__ == '__main__':
 
 	ptrn = Perceptron()
 	
 	#ptrn.run_all_perceptron_algorithms()
 	ptrn.run_one_vs_all()
-	ptrn.test_one_vs_all()
