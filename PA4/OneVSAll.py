@@ -92,42 +92,41 @@ class Perceptron:
 	def run_one_vs_all(sf):
 
 		#C1
-		data1, label1, data_test1, label_test1 = sf.classify_A_VS_B(1)
+		data1, label1, data_test1, label_test1 = sf.read_data(1)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_1)
 
 		#C2
-		data2, label2, data_test2, label_test2 = sf.classify_A_VS_B(2)
+		data2, label2, data_test2, label_test2 = sf.read_data(2)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_2)
 
 		#C3
-		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)
+		data3, label3, data_test3, label_test3 = sf.read_data(3)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_3)
 		
 		#C4
-		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)		
+		data4, label4, data_test4, label_test4 = sf.read_data(4)		
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_4)
 
 		#C5
-		data5, label5, data_test5, label_test5 = sf.classify_A_VS_B(5)
+		data5, label5, data_test5, label_test5 = sf.read_data(5)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_5)
 		
 		#C6
-		data6, label6, data_test6, label_test6 = sf.classify_A_VS_B(6)
+		data6, label6, data_test6, label_test6 = sf.read_data(6)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_6)
 
 
-	def test_one_vs_all(sf, data, label):
+	def test_one_vs_all(sf, data):
 		
-		class_sign = [0, 0, 0, 0, 0, 0]
-
+		predictions = []
 		for x in range(data.shape[0]):
-			
+			class_sign = [0, 0, 0, 0, 0, 0]	
 			#class 1
 			dot_YW = np.dot(data[i], sf.weight_mat1)
 			class_sign[0] = np.sign(dot_YW)
@@ -158,11 +157,11 @@ class Perceptron:
 			dont_know = False
 			no_class = True
 
-			for x in range(len(class_sign)):
+			for c in range(len(class_sign)):
 				
-				if class_sign[x] == 1:					
+				if class_sign[c] == 1:					
 					count_class += 1
-					class_label = x+1
+					class_label = c+1
 					no_class = False
 
 				if count_class > 1:
@@ -171,12 +170,14 @@ class Perceptron:
 
 			if dont_know == False:
 				if no_class == False:
-					return class_label
-				else
-					return -1
-			else
-				return -1 #dont know
-				
+					label = class_label
+				else:
+					label =  -1
+			else:
+				label = -1 #dont know
+			predictions += [label]
+		return predictions
+
 	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
 
@@ -259,6 +260,6 @@ if __name__ == '__main__':
 
 	ptrn = Perceptron()
 	
-	ptrn.run_all_perceptron_algorithms()
-	#ptrn.run_one_vs_all()
-
+	#ptrn.run_all_perceptron_algorithms()
+	ptrn.run_one_vs_all()
+	ptrn.test_one_vs_all()
