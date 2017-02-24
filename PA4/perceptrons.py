@@ -150,10 +150,10 @@ class Perceptron:
 			#print "sf.all_weight_mat: ", sf.all_weight_mat
 			
 			sf.train_err += [sf.test_voted_perceptron(data, label)]
-			print("train err after", t+1, "pass:", sf.train_err[t])
+			print("train err after", t+1, "pass:", sf.train_err[-1])
 
 			sf.test_err += [sf.test_voted_perceptron(test_data, test_label)]
-			print("test err after", t+1, "pass:", sf.test_err[t])
+			print("test err after", t+1, "pass:", sf.test_err[-1])
 
 	def test_voted_perceptron(sf, data, label):
 
@@ -178,13 +178,13 @@ class Perceptron:
 	#think about why would voted and averaged perceptron give you the
 	#same result?!
 
-
-	def averaged_perceptron(sf, data, label, test_data, test_label, weight_mat, running_avg):
+	def averaged_perceptron(sf, data, label, test_data, test_label, running_avg):
 		
 		print("Running Averaged Perceptron!")
 
+		weight_mat = np.zeros(sf.input_data.shape[1])
 		count = 1
-		num_passes = 1
+		num_passes = 4
 		for t in range(num_passes):         
 			for i in range(len(data)):
 				dot_XW = np.dot(data[i], weight_mat)
@@ -202,9 +202,9 @@ class Perceptron:
 					count += 1			
 
 			sf.train_err += [sf.test_averaged_perceptron(data, label, running_avg)]
-			print("train err after", t+1, "pass:", sf.train_err[t])
+			print("train err after", t+1, "pass:", sf.train_err[-1])
 			sf.test_err += [sf.test_averaged_perceptron( test_data, test_label, running_avg)]
-			print("test err after", t+1, "pass:", sf.test_err[t])
+			print("test err after", t+1, "pass:", sf.test_err[-1])
 
 		#######CHANGE THIS TO 3###############
 		topK = 5
@@ -229,8 +229,6 @@ class Perceptron:
 		per = err/data.shape[0]
 		
 		return per
-
-
 
 	'''
 	
@@ -338,19 +336,15 @@ class Perceptron:
 
 		data, label, data_test, label_test = sf.classify_A_VS_B(1, 2)
 		
-		#sf.perceptron(data, label, data_test, label_test, sf.weight_mat)
+		sf.perceptron(data, label, data_test, label_test, sf.weight_mat)
 
 		####REMEMBER TO RESET VARIABLES######
-
-		#sf.weight_mat = np.zeros(sf.input_data.shape[1])
 		
 		sf.voted_perceptron(data, label, data_test, label_test)
 
 		####REMEMBER TO RESET VARIABLES######
 
-		#sf.weight_mat = np.zeros(sf.input_data.shape[1])
-
-		#sf.averaged_perceptron(data, label, data_test, label_test, sf.weight_mat, sf.running_avg)
+		sf.averaged_perceptron(data, label, data_test, label_test, sf.running_avg)
 		
 		
 
