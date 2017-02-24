@@ -260,11 +260,11 @@ class Perceptron:
 
 		#3 words that represent positive class strongly
 		for x in range(len(low_dim)):
-			print sf.dict[low_dim[x]][0]
+			print(sf.dict[low_dim[x]][0])
 
 		#3 words that represent negative class strongly
 		for x in range(len(high_dim)):
-			print sf.dict[high_dim[x]][0]
+			print(sf.dict[high_dim[x]][0])
 
 
 
@@ -344,7 +344,7 @@ class Perceptron:
 				else:
 					all_data[i,-1] = -1
 
-			for i in range(all_test_data.shape[1]):
+			for i in range(all_test_data.shape[0]):
 				if all_test_data[i,-1] == a:
 					all_test_data[i,-1] = 1
 				else:
@@ -355,14 +355,14 @@ class Perceptron:
 			for i in range(all_data.shape[0]):
 				if all_data[i,-1] == a:
 					all_data[i,-1] = 1
-				elif all_data[i,-1 == b:
+				elif all_data[i,-1] == b:
 					all_data[i,-1] = -1
 				else:
 					rows_not_used += [i]
 			all_data = np.delete(all_data,rows_not_used,0)
 
 			rows_not_used = []
-			for i in range(all_test_data.shape[1]):
+			for i in range(all_test_data.shape[0]):
 				if all_test_data[i,-1] == a:
 					all_test_data[i,-1] = 1
 				elif all_test_data[i,-1] == b:
@@ -379,7 +379,7 @@ class Perceptron:
 		
 		####REMEMBER TO RESET VARIABLES######
 
-		data, label, data_test, label_test = sf.classify_A_VS_B(1, 2)
+		data, label, data_test, label_test = sf.get_data_AvsB(1, 2)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat)
 
@@ -396,27 +396,27 @@ class Perceptron:
 
 	def run_one_vs_all(sf):
 
-		data1, label1, data_test1, label_test1 = sf.classify_A_VS_B(1)
+		data1, label1, data_test1, label_test1 = sf.get_data_AvsB(1)
 		weight_mat_1 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_1)
 
-		data2, label2, data_test2, label_test2 = sf.classify_A_VS_B(2)
+		data2, label2, data_test2, label_test2 = sf.get_data_AvsB(2)
 		weight_mat_2 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_2)
 
-		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)\
+		data3, label3, data_test3, label_test3 = sf.get_data_AvsB(3)
 		weight_mat_3 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_3)
 		
-		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)		
+		data4, label4, data_test4, label_test4 = sf.get_data_AvsB(4)		
 		weight_mat_4 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_4)
 
-		data5, label5, data_test5, label_test5 = sf.classify_A_VS_B(5)
+		data5, label5, data_test5, label_test5 = sf.get_data_AvsB(5)
 		weight_mat_5 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_5)
 		
-		data6, label6, data_test6, label_test6 = sf.classify_A_VS_B(6)
+		data6, label6, data_test6, label_test6 = sf.get_data_AvsB(6)
 		weight_mat_6 = np.zeros(sf.input_data.shape[1])
 		sf.perceptron(data, label, data_test, label_test, weight_mat_6)
 
@@ -428,4 +428,3 @@ if __name__ == '__main__':
 	
 	ptrn.run_all_perceptron_algorithms()
 	#ptrn.run_one_vs_all()
-
