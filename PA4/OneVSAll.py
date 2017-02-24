@@ -92,32 +92,32 @@ class Perceptron:
 	def run_one_vs_all(sf):
 
 		#C1
-		data1, label1, data_test1, label_test1 = sf.classify_A_VS_B(1)
+		data1, label1, data_test1, label_test1 = sf.read_data(1)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_1)
 
 		#C2
-		data2, label2, data_test2, label_test2 = sf.classify_A_VS_B(2)
+		data2, label2, data_test2, label_test2 = sf.read_data(2)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_2)
 
 		#C3
-		data3, label3, data_test3, label_test3 = sf.classify_A_VS_B(3)
+		data3, label3, data_test3, label_test3 = sf.read_data(3)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_3)
 		
 		#C4
-		data4, label4, data_test4, label_test4 = sf.classify_A_VS_B(4)		
+		data4, label4, data_test4, label_test4 = sf.read_data(4)		
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_4)
 
 		#C5
-		data5, label5, data_test5, label_test5 = sf.classify_A_VS_B(5)
+		data5, label5, data_test5, label_test5 = sf.read_data(5)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_5)
 		
 		#C6
-		data6, label6, data_test6, label_test6 = sf.classify_A_VS_B(6)
+		data6, label6, data_test6, label_test6 = sf.read_data(6)
 		
 		sf.perceptron(data, label, data_test, label_test, sf.weight_mat_6)
 
@@ -176,7 +176,7 @@ class Perceptron:
 					return -1
 			else
 				return -1 #dont know
-				
+
 	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
 
