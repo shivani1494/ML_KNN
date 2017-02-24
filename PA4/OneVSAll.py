@@ -87,6 +87,7 @@ class Perceptron:
 			print("train err after", t+1 ,"pass:", sf.train_err[-1])
 			sf.test_err +=  [sf.test_perceptron(test_data, test_label, weight_mat)]
 			print("test err after", t+1, "pass:", sf.test_err[-1])
+		return weight_mat
 
 
 	def run_one_vs_all(sf):
@@ -94,32 +95,32 @@ class Perceptron:
 		#C1
 		data1, label1, data_test1, label_test1 = sf.get_data_AvsB(1)
 		
-		sf.perceptron(data1, label1, data_test1, label_test1, sf.weight_mat_1)
+		sf.weight_mat_1 = sf.perceptron(data1, label1, data_test1, label_test1, sf.weight_mat_1)
 
 		#C2
 		data2, label2, data_test2, label_test2 = sf.get_data_AvsB(2)
 		
-		sf.perceptron(data2, label2, data_test2, label_test2, sf.weight_mat_2)
+		sf.weight_mat_2 = sf.perceptron(data2, label2, data_test2, label_test2, sf.weight_mat_2)
 
 		#C3
 		data3, label3, data_test3, label_test3 = sf.get_data_AvsB(3)
 		
-		sf.perceptron(data3, label3, data_test3, label_test3, sf.weight_mat_3)
+		sf.weight_mat_3 = sf.perceptron(data3, label3, data_test3, label_test3, sf.weight_mat_3)
 		
 		#C4
 		data4, label4, data_test4, label_test4 = sf.get_data_AvsB(4)		
 		
-		sf.perceptron(data4, label4, data_test4, label_test4, sf.weight_mat_4)
+		sf.weight_mat_4 = sf.perceptron(data4, label4, data_test4, label_test4, sf.weight_mat_4)
 
 		#C5
 		data5, label5, data_test5, label_test5 = sf.get_data_AvsB(5)
 		
-		sf.perceptron(data5, label5, data_test5, label_test5, sf.weight_mat_5)
+		sf.weight_mat_5 = sf.perceptron(data5, label5, data_test5, label_test5, sf.weight_mat_5)
 		
 		#C6
 		data6, label6, data_test6, label_test6 = sf.get_data_AvsB(6)
 		
-		sf.perceptron(data6, label6, data_test6, label_test6, sf.weight_mat_6)
+		sf.weight_mat_6 = sf.perceptron(data6, label6, data_test6, label_test6, sf.weight_mat_6)
 
 		print("training err",sf.test_one_vs_all(sf.input_data,sf.input_label))
 		print("test err",sf.test_one_vs_all(sf.test_data,sf.test_label))
@@ -168,13 +169,14 @@ class Perceptron:
 		return (all_data[:,:-1], all_data[:,-1], all_test_data[:,:-1], all_test_data[:,-1])
 
 
-	def test_one_vs_all(sf, data, label):
+	def test_one_vs_all(sf, data, labels):
 		
 		predictions = []
 		for i in range(data.shape[0]):
 			class_sign = [0, 0, 0, 0, 0, 0]	
 			#class 1
 			dot_YW = np.dot(data[i], sf.weight_mat_1)
+
 			class_sign[0] = np.sign(dot_YW)
 
 			#class 2
@@ -214,16 +216,15 @@ class Perceptron:
 					dont_know = True
 					break
 
-			if dont_know == False:
-				if no_class == False:
-					label = class_label
-				else:
-					label =  -1
+			if dont_know:
+				label = -1
+			elif no_class:
+				label = -1
 			else:
-				label = -1 #dont know
+				label = class_label
 			predictions += [label]
-		print(predictions)
-		return np.count_nonzero(np.array(predictions) == label)/data.shape[0]
+
+		return (data.shape[0]-np.count_nonzero(np.array(predictions) == labels))/data.shape[0]
 
 	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
