@@ -15,6 +15,8 @@ class Perceptron:
 
 		sf.test_data, sf.test_label = sf.read_data(TEST_NAME)
 
+		sf.dict = sf.read_data(DICTIONARY_NAME, True)
+
 		#shape of input_data == 2000, 891
 		#initialize to all 0's
 		sf.weight_mat = np.zeros(sf.input_data.shape[1])
@@ -30,8 +32,11 @@ class Perceptron:
 
 		sf.test_err = []
 
-	def read_data(sf, filename):
+	def read_data(sf, filename, isDict=None):
 		#read test train and label data
+
+
+
 
 		print("Loading %s ..." %filename)
 
@@ -44,11 +49,20 @@ class Perceptron:
 			data += [line]
 			line = filehandle.readline()
 		
+		if(isDict == True):
+			return data
+
 		data = np.array(data)
 		data = data.astype(float)
 
 		print(filename,"loaded : Dim",data.shape)
 		return data[:,:-1], data[:,-1]
+
+
+	'''
+	what are we classifying? what are we learning? what do these
+	test and data points correspond to and labels to?
+	'''
 
 	'''
 
@@ -59,8 +73,7 @@ class Perceptron:
 
 	'''
 
-
-	def perceptron(sf, data, label, test_data, test_label):
+	def perceptron(sf, data, label, test_data, test_label, weight_mat):
 
 		num_passes = 2
 
@@ -77,27 +90,27 @@ class Perceptron:
 		for t in range(num_passes):         
 			for i in range(data.shape[0]):
 				
-				dot_XW = np.dot(data[i], sf.weight_mat)
+				dot_XW = np.dot(data[i], weight_mat)
 				#print "dot prod: ", dot_XW
 				#print "sign of dot prod: ", np.sign(dot_XW)
 				if(label[i]*dot_XW <= 0):
-					sf.weight_mat = sf.weight_mat + ( label[i]*data[i] )
+					weight_mat = weight_mat + ( label[i]*data[i] )
 					#print "i label[i]: ", i, ": ", label[i]
 
 				#if (i == 0):
-				#print "weights: ", sf.weight_mat				
+				#print "weights: ", weight_mat				
 
-			sf.train_err += [sf.test_perceptron(data, label)] 
+			sf.train_err += [sf.test_perceptron(data, label, weight_mat)] 
 			print("train err after", t+1 ,"pass:", sf.train_err[-1])
-			sf.test_err +=  [sf.test_perceptron(test_data, test_label)]
+			sf.test_err +=  [sf.test_perceptron(test_data, test_label, weight_mat)]
 			print("test err after", t+1, "pass:", sf.test_err[-1])
 
-	def test_perceptron(sf, data, label):
+	def test_perceptron(sf, data, label, weight_mat):
 		#predict output for normal perceptron
 
 		err = 0.0
 		for i in range(data.shape[0]):
-			dot_YW = np.dot(data[i], sf.weight_mat)
+			dot_YW = np.dot(data[i], weight_mat)
 			class_sign = np.sign(dot_YW)
 
 			if(class_sign != label[i]):
@@ -106,7 +119,7 @@ class Perceptron:
 		return err/data.shape[0]
 
 
-	def voted_perceptron(sf, data, label, test_data, test_label):
+	def voted_perceptron(sf, data, label, test_data, test_label, weight_mat):
 		count = 1
 		num_passes = 3
 
@@ -114,15 +127,15 @@ class Perceptron:
 
 		for t in range(num_passes):        
 			for i in range(len(data)):
-				dot_XW = np.dot(data[i], sf.weight_mat)
+				dot_XW = np.dot(data[i], weight_mat)
 				if(label[i]*dot_XW <= 0):
-					temp_weight_mat = sf.weight_mat + (label[i]*data[i])
+					temp_weight_mat = weight_mat + (label[i]*data[i])
 					
 					#append for the previous matrix
-					sf.all_weight_mat.append(copy.copy(sf.weight_mat))
+					sf.all_weight_mat.append(copy.copy(weight_mat))
 					sf.weight_count.append(count)
 
-					sf.weight_mat = temp_weight_mat 
+					weight_mat = temp_weight_mat 
 					count = 1
 					
 				else:
@@ -137,7 +150,7 @@ class Perceptron:
 	def test_voted_perceptron(sf, data, label):
 
 		sum_sign = 0
-		err = 0
+		err = 0.0
 		for t in range(len(data)):
 
 			#you can totally vectorize this loop
@@ -156,50 +169,99 @@ class Perceptron:
 
 	#think about why would voted and averaged perceptron give you the
 	#same result?!
-	def averaged_perceptron(sf, data, label, test_data, test_label):
+
+
+	def averaged_perceptron(sf, data, label, test_data, test_label, weight_mat, running_avg):
 		
 		print("Running Averaged Perceptron!")
 
 		count = 1
-		num_passes = 4
-		err = 0
+		num_passes = 1
 		for t in range(num_passes):         
 			for i in range(len(data)):
-				dot_XW = np.dot(data[i], sf.weight_mat)
+				dot_XW = np.dot(data[i], weight_mat)
 				if(label[i]*dot_XW <= 0):
-					temp_weight_mat = sf.weight_mat + (label[i]*data[i])
+					temp_weight_mat = weight_mat + (label[i]*data[i])
 		
 					#append for the previous matrix
-					sf.running_avg += sf.weight_mat*count
-					sf.weight_mat = temp_weight_mat
+					running_avg += weight_mat*count
+					weight_mat = temp_weight_mat
 
-					err += 1
+					#print "i label[i]: ", i, ": ", label[i]
+
 					count = 1        
 				else:
 					count += 1			
 
-			sf.train_err += [sf.test_averaged_perceptron(data, label)]
+			sf.train_err += [sf.test_averaged_perceptron(data, label, running_avg)]
 			print("train err after", t+1, "pass:", sf.train_err[t])
-			sf.test_err += [sf.test_averaged_perceptron( test_data,  test_label)]
+			sf.test_err += [sf.test_averaged_perceptron( test_data, test_label, running_avg)]
 			print("test err after", t+1, "pass:", sf.test_err[t])
 
+		#######CHANGE THIS TO 3###############
+		topK = 5
+		sf.interpret_averaged_perceptron(topK)
 
-	def test_averaged_perceptron(sf, data, label):
+
+	def test_averaged_perceptron(sf, data, label, running_avg):
 
 		sum_sign = 0
-		err = 0
+		err = 0.0
 		for t in range(len(data)):
 
 			#you can totally vectorize this loop
-			dot_WY = np.dot(sf.running_avg,data[t])
+			dot_WY = np.dot(running_avg,data[t])
 
 			#final sign or class of test data t
 			class_t = np.sign(dot_WY)
 
 			if(class_t != label[t]):
 				err += 1 
+				#print err
 
-		return err/data.shape[0]
+		per = err/data.shape[0]
+		
+		return per
+
+
+
+	'''
+	
+	what does it mean for every dim/axis to have a word associated with it?
+	why would words correspond to certain coordinates?
+	Three highest coordinates are those with ...strongly and 
+	three lowest coordinates are those with ...strongly why so?
+
+	'''
+	def interpret_averaged_perceptron(sf, topK):
+
+		sorted_weights_ind = np.argsort(sf.running_avg)
+
+		#print sorted_weights_ind
+
+		#3 lowest dimensions
+		low_dim = []
+		for x in range(topK):
+			low_dim += [sorted_weights_ind[x]]
+
+		#print low_dim
+
+		#3 highest dimensions
+		high_dim = []
+		for x in range(topK):
+			high_dim += [sorted_weights_ind[-1*(x+1)]]
+
+		#print high_dim
+
+		#3 words that represent positive class strongly
+		for x in range(len(low_dim)):
+			print sf.dict[low_dim[x]][0]
+
+		#3 words that represent negative class strongly
+		for x in range(len(high_dim)):
+			print sf.dict[high_dim[x]][0]
+
+
 
 
 	def classify_A_VS_B(sf, a, b=None):
@@ -265,13 +327,23 @@ class Perceptron:
 
 	def run_all_perceptron_algorithms(sf):
 		
+		####REMEMBER TO RESET VARIABLES######
+
 		data, label, data_test, label_test = sf.classify_A_VS_B(1, 2)
 		
-		sf.perceptron(data, label, data_test, label_test)
-		
-		sf.voted_perceptron(data, label, data_test, label_test)
+		#sf.perceptron(data, label, data_test, label_test, sf.weight_mat)
 
-		sf.averaged_perceptron(data, label, data_test, label_test)
+		####REMEMBER TO RESET VARIABLES######
+
+		#sf.weight_mat = np.zeros(sf.input_data.shape[1])
+		
+		sf.voted_perceptron(data, label, data_test, label_test, sf.weight_mat)
+
+		####REMEMBER TO RESET VARIABLES######
+
+		#sf.weight_mat = np.zeros(sf.input_data.shape[1])
+
+		#sf.averaged_perceptron(data, label, data_test, label_test, sf.weight_mat, sf.running_avg)
 		
 		
 
