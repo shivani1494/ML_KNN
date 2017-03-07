@@ -3,17 +3,7 @@ from itertools import combinations
 
 class Kernel:
     def __init__(sf):
-        sf._sub_size = 0
-
-        sf._input_data = []
-        sf._input_label = []
-
-        sf._test_data = []
-        sf._test_label = []
-
-        sf._weights = []
-
-        sf.phi_func_data = []
+        sf._sub_size = 0 # Set when calling train
 
     def read_data(sf, filename):
         #read test train and label data
@@ -34,24 +24,40 @@ class Kernel:
         print(filename,"loaded : Dim",data.shape)
         return data[:,:-1], data[:,-1].astype(int)
 
-    def train(sf, data, label, weights):
+    def train(sf, data, label, p, kernel):
+        weights = []
+        sf._sub_size = p
         for x in range(data.shape[0]):
-            cur_string_count, string_count = sf.count_substrings(,data[x,:][0],sf._sub_size)
+            print(x)
 
             #print(string_count)
-            if kernelizePerceptron() <= 0:
-                weights += [[data[x],label[x]]]
+            if label[x]*kernel(data[x,:][0], weights) <= 0:
+                weights += [[data[x,:][0],label[x]]]
+                print("num Weights:",len(weights))
                 #print(weights)
 
         return weights
 
-    def predict(sf, data, label, weights):
+    def predict(sf, data, label, weights, kernel):
         results = []
         for x in range(data.shape[0]):
-            cur_string_count, string_count = sf.count_substrings(sf._alphabet,data[x,:][0],sf._sub_size)
-            results += [np.sign(np.dot(weights.T,string_count))]
+            results += [np.sign(kernel(data[x,:][0],weights))]
         
-        return np.count_nonzero(np.array(results) == label)
+        return ((data.shape[0] - np.count_nonzero(np.array(results) == label))/data.shape[0])
+
+    def kernelizePerceptron(sf, cur_string, weights):
+        k = 0
+        for w in weights:
+            cur_string_count, string_count = sf.count_substrings(cur_string, w[0],sf._sub_size)
+            k += w[1]*np.dot(cur_string_count.T, string_count)
+        return k
+
+    def kernelizePerceptron_one_ocurrence(sf, cur_string, weights):
+        k = 0
+        for w in weights:
+            cur_string_count, string_count = sf.count_substrings(cur_string, w[0],sf._sub_size)
+            k += w[1] * np.count_nonzero(cur_string_count * string_count)
+        return k
 
 
     def count_substrings(sf, cur_string, string, p):
@@ -79,19 +85,54 @@ class Kernel:
             else:
                 return count
 
-    def K(sf, phi_x, phi_x2):
-        return sum(phi_x * phi_x2)
-
 if __name__ == "__main__":
+    
+    # Files
     DEFAULT_INPUT = "hw5train.txt"
     DEFAULT_TEST = "hw5test.txt"
+    
+    # Instantiate Kernel
     kernel = Kernel()
-    d,l = kernel.read_data(DEFAULT_INPUT)
-    print(d.shape, d.dtype, len(d[0][0]))
-    print(l.shape, l.dtype, l[list(range(20))])
-    kernel.set_weights(3)
-    w = kernel.train(d,l, kernel._weights)
-    r = kernel.predict(d,l,w)
-    print(r)
 
+    # Read Training and Testing Data
+    input_data, input_label = kernel.read_data(DEFAULT_INPUT)
+    test_data, test_label = kernel.read_data(DEFAULT_TEST)
+    #print(kernel.kernelizePerceptron("bce",[["abc",-1],["cdf",1]]))
+    
+    # Training Part 1...
 
+    for p in [3,4,5]:
+        print("************* p = ",p)
+        output = open("tests.txt","a")
+        output.write("\nP: %i" %(p))
+
+        weights = kernel.train(input_data,input_label, p, kernel.kernelizePerceptron)
+        
+        error = kernel.predict(input_data,input_label,weights, kernel.kernelizePerceptron)
+        print("Training Error:",error)
+        output.write("\nTraining Error: %f" %(error))
+        
+        error_test = kernel.predict(test_data,test_label,weights, kernel.kernelizePerceptron)
+        print("Testing Error:",error_test)
+        output.write("\nTest Error: %f" %(error_test))
+        
+        output.close()
+
+    # Training Part 2...
+
+    for p in [3,4,5]:
+        print("************* p = ",p)
+        output = open("tests.txt","a")
+        output.write("\nP: %i" %(p))
+
+        weights = kernel.train(input_data,input_label, p, kernel.kernelizePerceptron_one_ocurrence)
+        
+        error = kernel.predict(input_data,input_label,weights, kernel.kernelizePerceptron_one_ocurrence)
+        print("Training Error:",error)
+        output.write("\nTraining Error: %f" %(error))
+        
+        error_test = kernel.predict(test_data,test_label,weights, kernel.kernelizePerceptron_one_ocurrence)
+        print("Testing Error:",error_test)
+        output.write("\nTest Error: %f" %(error_test))
+
+        output.close()

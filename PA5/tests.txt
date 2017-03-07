@@ -1,0 +1,8 @@
+p = 2
+Training: 
+#examples : 3629
+num Weights: 410
+# correct :3371
+
+
+P: 3
