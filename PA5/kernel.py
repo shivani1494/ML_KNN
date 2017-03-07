@@ -34,18 +34,13 @@ class Kernel:
         print(filename,"loaded : Dim",data.shape)
         return data[:,:-1], data[:,-1].astype(int)
 
-    def set_weights(sf, sub_size): # sub_size = p (substring size))
-        # Set the weights
-        sf._sub_size = sub_size
-        sf._weights = np.zeros(len(list(combinations(sf._alphabet, sub_size))))
-
     def train(sf, data, label, weights):
         for x in range(data.shape[0]):
-            alphabet_count, string_count = sf.count_substrings(sf._alphabet,data[x,:][0],sf._sub_size)
-            #k = K(np.array(string_count), np.array(x2_count))
+            cur_string_count, string_count = sf.count_substrings(,data[x,:][0],sf._sub_size)
+
             #print(string_count)
-            if np.dot(weights.T,string_count) * label[x] <= 0:
-                weights += (label[x] * string_count)
+            if kernelizePerceptron() <= 0:
+                weights += [[data[x],label[x]]]
                 #print(weights)
 
         return weights
@@ -53,13 +48,14 @@ class Kernel:
     def predict(sf, data, label, weights):
         results = []
         for x in range(data.shape[0]):
-            string_count, cur_string_count = sf.count_substrings(sf._alphabet,data[x,:][0],sf._sub_size)
+            cur_string_count, string_count = sf.count_substrings(sf._alphabet,data[x,:][0],sf._sub_size)
             results += [np.sign(np.dot(weights.T,string_count))]
         
         return np.count_nonzero(np.array(results) == label)
 
+
     def count_substrings(sf, cur_string, string, p):
-        substrings = list(combinations(cur_string, p))
+        substrings = ["".join(s) for s in set(list(combinations(cur_string,p))) if "".join(s) in cur_string]
         
         #cur_string = [s for s in list(combinations(alphaber,p)) if "".join(s) in alphaber]
         #string = [s for s in list(combinations(string,p)) if "".join(s) in string]
@@ -68,12 +64,11 @@ class Kernel:
         string_count = [] # Len substrings
         #print(substrings, cur_string, string)
         for sub in substrings:
-            s = "".join(sub)
 
-            cur_string_count += [sf.occurrences(cur_string,s)]
-            string_count += [sf.occurrences(string,s)]
+            cur_string_count += [sf.occurrences(cur_string,sub)]
+            string_count += [sf.occurrences(string,sub)]
         #print(string_count)
-        return np.array(alphabet_count), np.array(string_count)
+        return np.array(cur_string_count), np.array(string_count)
 
     def occurrences(sf, string, sub):
         count = start = 0
