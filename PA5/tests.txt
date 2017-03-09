@@ -4,6 +4,21 @@ Training:
 num Weights: 410
 # correct :3371
 
-
+p: 3
+Training Error: 0.013499
+Test Error: 0.042216
+P: 4
+Training Error: 0.009642
+Test Error: 0.035620
+P: 5
+Training Error: 0.010193
+Test Error: 0.064644
 P: 3
-P: 3
+Training Error: 0.013223
+Test Error: 0.055409
+P: 4
+Training Error: 0.009642
+Test Error: 0.036939
+P: 5
+Training Error: 0.010193
+Test Error: 0.064644

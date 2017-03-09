@@ -1,5 +1,5 @@
 import numpy as np
-
+import pickle
 
 class Kernel:
     def __init__(sf):
@@ -94,6 +94,58 @@ class Kernel:
             else:
                 return count
 
+    def max_coordinates(sf, data, label, weights, num_max=2, p=5):
+        global_substrings = {}
+
+        for w in weights:
+            substrings = [data[w][0][s:s + p] for s in range(len(data[w][0]) - p + 1)]
+            for sub in substrings:
+                if sub in global_substrings:
+                    global_substrings[sub] += 1 * label[w]
+                else:
+                    global_substrings[sub] = 1 * label[w]
+
+        print(global_substrings)
+
+        max_coordinates = []
+        for m in range(num_max):
+            key = max(global_substrings, key=global_substrings.get)
+            max_coordinates += [[key,global_substrings[key]]]
+            global_substrings[key] = -1 # Remove this substring as the max so next time max is 2nd substring
+
+        return max_coordinates
+
+    def max_coordinates_kernel(sf,num_max, data, weights, p=5):
+        global_substrings = {}
+        for x in range(data.shape[0]):
+            substrings = [data[x][0][s:s + p] for s in range(len(data[x][0]) - p + 1)]
+            substrings = set(substrings)
+            cur_string_count = sf.count_substrings_dic(substrings,data[x][0])
+            for w in weights:
+                string_count = sf.count_substrings_dic(substrings,w[0])
+                for sub in substrings:
+                    if sub in string_count:
+                        if sub in global_substrings:
+                            global_substrings[sub] += cur_string_count[sub] * string_count[sub]
+                        else:
+                            global_substrings[sub] = cur_string_count[sub] * string_count[sub]
+
+
+        max_coordinates = []
+        for m in range(num_max):
+            key = max(global_substrings, key=global_substrings.get)
+            max_coordinates += [[key,global_substrings[key]]]
+            global_substrings[key] = -1 # Remove this substring as the max so next time max is 2nd substring
+
+        return max_coordinates
+
+    def count_substrings_dic(sf, substrings, string):
+        string_count = {}  # Len substrings
+        for sub in substrings:
+            string_count[sub] = sf.occurrences(string, sub)
+        return string_count
+
+
 
 if __name__ == "__main__":
     # Files
@@ -111,6 +163,22 @@ if __name__ == "__main__":
     #weights = kernel.train(input_data, input_label, 2, kernel.kernelizePerceptron)
     #error = kernel.predict(input_data, input_label, input_data, input_label, weights, kernel.kernelizePerceptron)
     #print(error)
+
+    # Part 3
+    #weights = kernel.train(input_data, input_label, 5, kernel.kernelizePerceptron)
+
+    varFile = open("objs.pickle","rb")
+    #pickle.dump([weights],varFile)
+    weights = pickle.load(varFile)[0]
+    print(len(weights))
+    varFile.close()
+
+    #####kernel._sub_size = 5
+    #####error = kernel.predict(input_data, input_label, input_data, input_label, weights, kernel.kernelizePerceptron)
+    #####print("Training Error:", error)
+
+    max = kernel.max_coordinates(input_data, input_label,weights,num_max=6)
+    print(max)
 
     # Training Part 1...
 
